@@ -1,0 +1,13 @@
+src/
+│
+├── actions/
+│   └── store.js             ← 🔧 The Redux store is created here
+│
+├── slices/
+│   └── applicantSlice.js    ← 🧠 This defines part of the Redux state (the "slice")
+│
+├── components/
+│   └── Applicants.js        ← 👀 This is where you're using the Redux state
+│
+├── App.js                   ← App component (wrapped in Provider)
+└── index.js                 ← Entry point where <Provider store={store}> is set up

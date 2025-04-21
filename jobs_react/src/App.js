@@ -1,14 +1,28 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
 import { store } from './actions/store';
-import { Provider} from "react-redux" 
+import { Provider } from "react-redux";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import './App.css';
+import Applicants from './components/Applicants';
+import NavBar from './components/NavBar';
+import Home from './components/Home';
 
 function App() {
   return (
-    <Provider store={store}>
-      
-    </Provider>
-    
+    <>
+      <Home/>  
+      <Provider store={store}>
+        <Router>
+          <NavBar />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/applicants" element={<Applicants />} />
+          </Routes>
+        </Router>
+        
+      </Provider>
+    </>
   );
 }
 
