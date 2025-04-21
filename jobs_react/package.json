@@ -2,6 +2,8 @@
   "name": "jobs_react",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+     "node": "16"},
   "dependencies": {
     "@reduxjs/toolkit": "^2.6.1",
     "@testing-library/dom": "^10.4.0",
@@ -38,9 +40,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "engines": {
-  "node": "16"
-}
-
+  }
+  
 }
