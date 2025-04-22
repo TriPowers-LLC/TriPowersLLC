@@ -4,9 +4,12 @@ function Home() {
     return (
         <div className = "home-container">
             <section className ="hero">
+                <img src ="../assets/logo.svg" alt="Logo" className="logo" /> {/* Logo */}
+                <h1 className="hero-title">TriPowers LLC</h1>
                 <h1>Welcome to TriPowers LLC</h1>
                 <p>
-                    Your one-stop solution for all your business needs. We specialize in providing top-notch services to help you grow and succeed in today's competitive market.</p> 
+                    Your one-stop solution for all your business needs. We specialize in providing top-notch services to help you grow and succeed in today's competitive market.</p>
+                <img src ="../assets/ChatGPT Image 1.png" alt="Office" className="heroPhoto" /> {/* Hero */} 
                 <br />
                 <a href="#contact" className ="cta-btn">Contact Us</a>
                            
