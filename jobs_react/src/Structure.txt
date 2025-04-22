@@ -2,6 +2,7 @@ src/
 │
 ├── actions/
 │   └── store.js             ← 🔧 The Redux store is created here
+|   └── applicantActions.js
 │
 ├── slices/
 │   └── applicantSlice.js    ← 🧠 This defines part of the Redux state (the "slice")

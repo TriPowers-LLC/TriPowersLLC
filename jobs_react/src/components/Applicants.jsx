@@ -21,7 +21,7 @@ function Applicants(props) {
         {error && <p style = {{ color: "red"}} > Error: {error}</p>}
         
         <ul>
-          {applicants.map((a) => (
+          {applicant.map((a) => (
             <li key={a.id}>{a.name}</li>  // Assuming each applicant has a `name`
           ))}
         </ul>

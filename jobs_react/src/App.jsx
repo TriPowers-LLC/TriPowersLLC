@@ -10,14 +10,13 @@ import Home from './components/Home';
 
 function App() {
   return (
-    <>
-      <Home/>  
+    <> 
       <Provider store={store}>
         <Router>
           <NavBar />
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/applicants" element={<Applicants />} />
+            
           </Routes>
         </Router>
         
