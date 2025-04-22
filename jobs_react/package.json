@@ -26,7 +26,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vite test",
-    "eject": "vite eject"
+    "eject": "vite eject",
+    "postinstall": "npm install -g vite"
   },
   "eslintConfig": {
     "extends": [
