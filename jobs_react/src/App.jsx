@@ -4,10 +4,8 @@ import { Provider } from "react-redux";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import './App.css';
-import Applicants from './components/Applicants';
 import NavBar from './components/NavBar';
 import Home from './components/Home';
-import UnderConstruction from './components/UnderConstruction';
 
 function App() {
   return (
@@ -16,9 +14,7 @@ function App() {
         <Router>
           <NavBar />
           <Routes>
-            {/* <Route path="/" element={<Home />} /> */}
-            <Route path ="/under-construction" element={<UnderConstruction />} />
-            
+            <Route path="/" element={<Home />} /> 
           </Routes>
         </Router>
         
