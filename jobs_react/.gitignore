@@ -24,3 +24,14 @@ yarn-error.log*
 
 .vercel
 .vercel
+.vs
+../obj
+
+.vscode
+.vscode-test
+**/TriPowersLLC/
+**/bin/
+**/obj/
+# Local env files
+.env
+.env.development
