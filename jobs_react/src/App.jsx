@@ -13,17 +13,18 @@ function App() {
     <> 
       <Provider store={store}>
         <Router>
-        <img
-              src={logo}
-              alt="Logo"
-              className="App-logo " // Add a class for styling
-              // style={{ height: '40px', width: '40px' }}
-            />
           {/* <NavBar /> */}
           <Routes>
             {/* <Route path="/" element={<Home />} />  */}
             <Route path="/" element={<UnderConstruction />} />
           </Routes>
+          <div className="flex justify-center items-center min-h-screen bg-white">
+          <img
+            src={logo}
+            alt="Logo"
+            className="App-logo"
+          />
+        </div>
           
         </Router>
         
