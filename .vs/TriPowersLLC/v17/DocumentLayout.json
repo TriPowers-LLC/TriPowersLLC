@@ -1,0 +1,109 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|c:\\users\\spirit\\onedrive\\documents\\coding\\tripowersllc\\tripowersllc\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|solutionrelative:tripowersllc\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|c:\\users\\spirit\\onedrive\\documents\\coding\\tripowersllc\\tripowersllc\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|solutionrelative:tripowersllc\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|c:\\users\\spirit\\onedrive\\documents\\coding\\tripowersllc\\tripowersllc\\controllers\\applicantscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|solutionrelative:tripowersllc\\controllers\\applicantscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|c:\\users\\spirit\\onedrive\\documents\\coding\\tripowersllc\\tripowersllc\\models\\applicants.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|solutionrelative:tripowersllc\\models\\applicants.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|c:\\users\\spirit\\onedrive\\documents\\coding\\tripowersllc\\tripowersllc\\controllers\\jobdescriptioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{E2CE77AB-72C0-4955-9681-792C028FC92B}|TriPowersLLC\\TriPowersLLC.csproj|solutionrelative:tripowersllc\\controllers\\jobdescriptioncontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 4,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{34e76e81-ee4a-11d0-ae2e-00a0c90fffc3}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "JobDescriptionController.cs",
+              "DocumentMoniker": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Controllers\\JobDescriptionController.cs",
+              "RelativeDocumentMoniker": "TriPowersLLC\\Controllers\\JobDescriptionController.cs",
+              "ToolTip": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Controllers\\JobDescriptionController.cs",
+              "RelativeToolTip": "TriPowersLLC\\Controllers\\JobDescriptionController.cs",
+              "ViewState": "AQIAACQAAAAAAAAAAAAowDIAAAAqAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-09T01:03:48.202Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ApplicantsController.cs",
+              "DocumentMoniker": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Controllers\\ApplicantsController.cs",
+              "RelativeDocumentMoniker": "TriPowersLLC\\Controllers\\ApplicantsController.cs",
+              "ToolTip": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Controllers\\ApplicantsController.cs",
+              "RelativeToolTip": "TriPowersLLC\\Controllers\\ApplicantsController.cs",
+              "ViewState": "AQIAAAkAAAAAAAAAAAAAAAYAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-29T20:04:49.446Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\appsettings.json",
+              "RelativeDocumentMoniker": "TriPowersLLC\\appsettings.json",
+              "ToolTip": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\appsettings.json",
+              "RelativeToolTip": "TriPowersLLC\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAEAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-03-25T14:36:18.976Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Program.cs",
+              "RelativeDocumentMoniker": "TriPowersLLC\\Program.cs",
+              "ToolTip": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Program.cs",
+              "RelativeToolTip": "TriPowersLLC\\Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAMAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-25T14:30:58.528Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Applicants.cs",
+              "DocumentMoniker": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Models\\Applicants.cs",
+              "RelativeDocumentMoniker": "TriPowersLLC\\Models\\Applicants.cs",
+              "ToolTip": "C:\\Users\\Spirit\\OneDrive\\Documents\\Coding\\TriPowersLLC\\TriPowersLLC\\Models\\Applicants.cs",
+              "RelativeToolTip": "TriPowersLLC\\Models\\Applicants.cs",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAABMAAAAqAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-03-25T00:54:59.064Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
