@@ -20,21 +20,21 @@ export default function JobGenerator() {
     <div className="p-4 max-w-xl mx-auto">
       <h2 className="text-xl font-semibold mb-2">AI Job Description Generator</h2>
       <textarea
-        className="w-full border p-2 rounded mb-2"
+        className="w-full border p-2 rounded-sm mb-2"
         placeholder="Enter role prompt..."
         rows={3}
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
       <button
-        className="bg-blue-600 text-white px-4 py-2 rounded"
+        className="bg-blue-600 text-white px-4 py-2 rounded-sm"
         onClick={handleGenerate}
       >
         Generate
       </button>
 
       {description && (
-        <div className="mt-4 p-3 border rounded bg-gray-100 whitespace-pre-wrap">
+        <div className="mt-4 p-3 border rounded-sm bg-gray-100 whitespace-pre-wrap">
           {description}
         </div>
       )}
