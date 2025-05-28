@@ -32,6 +32,7 @@ jobs:
           # api_location: "TriPowersLLC"  Api source code path - optional
           output_location: "dist" # Built app content directory - optional
           skip_api_build: true
+          routes_location: jobs_react/routes.json   # (default is root of app_location)
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:
