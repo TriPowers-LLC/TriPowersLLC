@@ -6,7 +6,7 @@ import NavBar from './components/NavBar';
 import Home from './components/Home';
 import UnderConstruction from './components/UnderConstruction';
 import Services from './components/Services';
-import Contact from './components/contact';
+import Contact from './components/Contact';
 
 const App = ()=> {
   return (
