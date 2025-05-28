@@ -30,7 +30,7 @@ jobs:
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
           app_location: "jobs_react" # App source code path
           # api_location: "TriPowersLLC"  Api source code path - optional
-          output_location: "dist" # Built app content directory - optional
+          output_location: dist # Built app content directory - optional
           skip_api_build: true
           #routes_location: jobs_react/routes.json   # (default is root of app_location)
           ###### End of Repository/Build Configurations ######
