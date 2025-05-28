@@ -22,7 +22,7 @@ const NavBar = ({userRole = "guest "}) => {
         <img
                       src={logo}
                       alt="Logo"
-                      className="App-logo h-12 w-auto" 
+                      className="App-logo h-14 w-auto" 
         />
 
         {/* burger (mobile) */}
