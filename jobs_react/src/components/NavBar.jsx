@@ -48,16 +48,6 @@ const NavBar = ({userRole = "guest "}) => {
           ))}
         </ul>
         
-        {/* Nav Links */}
-        {/* <ul className="flex flex-row w-full items-center space-x-8 text-sm font-medium max-sm:hidden">
-          <li><a href="#home" className="hover:text-orange-400 transition">Home</a></li>
-          <li><a href="#about" className="hover:text-orange-400 transition">About</a></li>
-          <li><a href="#services" className="hover:text-orange-400 transition">Services</a></li>
-          <li><a href="#jobs" className="hover:text-orange-400 transition">Job Board</a></li>
-          <li><a href="#portfolio" className="hover:text-orange-400 transition">Portfolio</a></li>
-          <li><a href="#contact" className="hover:text-orange-400 transition">Contact</a></li>
-          <li><a href="#admin" className="hover:text-orange-400 transition">Admin Panel</a></li>
-        </ul> */}
       </div>
 
       {/* mobile drawer */}
@@ -65,13 +55,13 @@ const NavBar = ({userRole = "guest "}) => {
         <ul className="sm:hidden space-y-4 bg-blue-900 px-4 pb-6 text-center">
           {NAV_LINKS.filter(l => !l.role || l.role === userRole).map(link => (
             <li key={link.label}>
-              <a
-                href={link.href}
+              <Link
+               to={link.href}
                 className="block py-2 hover:text-orange-400"
                 onClick={() => setOpen(false)}
-              >
+          >
                 {link.label}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

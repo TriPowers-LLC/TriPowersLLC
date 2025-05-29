@@ -12,8 +12,8 @@ module.exports = async (context, req) => {
   }
 
   await sendgrid.send({
-    to: "kimberlyjenkins@tripowersllc.com",
-    from: "info@tripowersllc.com",
+    to: "kimberlyjenkins@tripowersllc.com", // recipient's email
+    from: "kimberlyjenkins@tripowersllc.com",
     subject: `Contact form: ${name}`,
     text: `${message}\n\nPhone: ${phone}\nEmail: ${email}`
   });

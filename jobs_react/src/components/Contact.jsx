@@ -5,9 +5,9 @@ import * as emailjs from "@emailjs/browser";
 
 gsap.registerPlugin(useGSAP);
 
-const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+/* const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY; */
 
 
 const Contact = () => {
@@ -17,8 +17,9 @@ const Contact = () => {
     gsap.to(".contact-card", { y: -20, opacity: 1, delay: 0.15 });
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const data = new FormData(formRef.current);
 
   try {
     await fetch("/api/send-email", {
@@ -28,7 +29,7 @@ const Contact = () => {
       },
       body: JSON.stringify(Object.fromEntries(data)),
     })
-    alert("Thank you!  We;ll be in touch shortly.");
+    alert("Thank you!  We'll be in touch shortly.");
     formRef.current.reset();
     }  catch (error) {
     console.error("Error sending email:", error);
