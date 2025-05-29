@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect} from 'react';
 import { store } from './actions/store';
 import { Provider } from "react-redux";
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
@@ -9,6 +9,14 @@ import Services from './components/Services';
 import Contact from './components/Contact';
 
 const App = ()=> {
+  const [data, setData] = useState('');
+
+  useEffect(() => {
+    (async function () {
+      const { text } = await( await fetch(`/api/message`)).json();
+      setData(text);
+    })();
+  });
   return (
     <> 
       <Provider store={store}>

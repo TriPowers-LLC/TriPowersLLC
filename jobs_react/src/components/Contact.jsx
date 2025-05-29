@@ -20,18 +20,21 @@ const Contact = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    emailjs
-      // .init({publicKey: PUBLIC_KEY})
-      .sendForm(SERVICE_ID, TEMPLATE_ID, formRef.current, PUBLIC_KEY)
-      .then(() => {
-        alert("Thank you! We’ll be in touch shortly.");
-        formRef.current.reset();
-      })
-      .catch((err) => {
-        console.error(err.text);
-        alert("Oops, something went wrong. Please try again later.");
-      });
-  };
+  try {
+    await fetch("/api/send-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(Object.fromEntries(data)),
+    })
+    alert("Thank you!  We;ll be in touch shortly.");
+    formRef.current.reset();
+    }  catch (error) {
+    console.error("Error sending email:", error);
+    alert("There was an error sending your message. Please try again later.");
+    }
+}
 
   return (
     <section
