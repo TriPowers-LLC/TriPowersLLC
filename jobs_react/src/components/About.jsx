@@ -35,7 +35,7 @@ const About = () => {
         {/* Photo Grid */}
         <div className="mt-16 grid md:grid-cols-3 gap-6">
           <motion.img
-            src="src/assets/kimberly-jenkins.jpg"
+            src={new URL('../assets/kimberly-jenkins.jpg', import.meta.url).href}
             alt="Kimberly Jenkins, Founder & CEO"
             className="rounded-2xl shadow-lg object-cover h-72 w-full"
             initial={{ opacity: 0 }}
@@ -43,7 +43,7 @@ const About = () => {
             transition={{ duration: 0.6 }}
           />
           <motion.img
-            src="src/assets/kenyatta-powers.jpg"
+            src={new URL('../assets/kenyatta-powers.jpg', import.meta.url).href}
             alt="Kenyatta Powers‑Rucker, Vice President"
             className="rounded-2xl shadow-lg object-cover h-72 w-full"
             initial={{ opacity: 0 }}
@@ -51,7 +51,7 @@ const About = () => {
             transition={{ duration: 0.6, delay: 0.15 }}
           />
           <motion.img
-            src="/src/assets/team-hq.png"
+            src={new URL('../assets/team-hq.png', import.meta.url).href}
             alt="TriPowers team collaborating"
             className="rounded-2xl shadow-lg object-cover h-72 w-full"
             initial={{ opacity: 0 }}
