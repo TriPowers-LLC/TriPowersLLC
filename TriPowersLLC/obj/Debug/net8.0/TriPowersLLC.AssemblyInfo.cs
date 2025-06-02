@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TriPowersLLC")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c541e9d2d62b77e73a5370d4e12f28cfbad812bd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0040bd454a2baf66699d43eb8384d98cf49b6aec")]
 [assembly: System.Reflection.AssemblyProductAttribute("TriPowersLLC")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TriPowersLLC")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
