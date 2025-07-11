@@ -19,6 +19,10 @@ namespace TriPowersLLC.Models
         public string country { get; set; }
         [Column(TypeName = "nvarchar(10)")]
         public string zipCode { get; set; }
+        public string ResumeText { get; set; } = null!;
+        public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
+        public int JobId { get; set; }
+        public Job Job { get; set; } = null!;
 
     }
 }
