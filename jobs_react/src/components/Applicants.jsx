@@ -5,6 +5,13 @@ import NavBar from "./NavBar";
 
 
 function Applicants(props) {
+  const handleGenerateApplicant = async () => {
+    const applicantPayload = {
+      name: "New Applicant",
+      email: "newapplicant@example.com"
+    };
+    const res = await axios.post("/api/applicants", applicantPayload); // create applicant
+  };
   const applicant = useSelector((state) => state.applicants.applicants);
   const loading = useSelector((state) => state.applicants.loading);
   const dispatch = useDispatch();
@@ -12,6 +19,7 @@ function Applicants(props) {
     useEffect(() => {
       dispatch(fetchAll());
     }, [dispatch]);
+    
   return (
     <div>
       <NavBar/>

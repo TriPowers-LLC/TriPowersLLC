@@ -55,6 +55,6 @@ namespace TriPowersLLC.Controllers
 
     public class JobPrompt
     {
-        public string Prompt { get; set; }
+        public string? Prompt { get; set; }
     }
 }
