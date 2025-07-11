@@ -10,9 +10,10 @@ const NAV_LINKS = [
   { label: "Portfolio", href: "/portfolio" },
   { label: "Contact",   href: "/contact"   },
   { label: "Admin",     href: "/admin",    role: "admin" },
+  { label: "Login",     href: "/login",    role: "guest" }
 ];
 
-const NavBar = ({userRole = "guest "}) => {
+const NavBar = ({userRole = "guest"}) => {
   const [open, setOpen] = useState(false);
 
   return (
