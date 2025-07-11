@@ -10,6 +10,14 @@ import Contact from './components/Contact';
 import About from './components/About';
 import Portfolio from './components/Portfolio';
 import Careers from './components/Careers';
+import Admin from './components/Admin';
+import Login from './components/Login';
+
+function RequireAuth({ children }) {
+  return localStorage.getItem('token')
+    ? children
+    : <Navigate to="/login" replace />;
+}
 
 const App = ()=> {
   const [data, setData] = useState('');
@@ -31,6 +39,15 @@ const App = ()=> {
             <Route path="/about" element={<About />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/careers" element={<Careers />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/admin"
+              element={
+                <RequireAuth>
+                  <Admin />
+                </RequireAuth>
+              }
+            />
 
             {/* <Route path="/" element={<UnderConstruction />} /> */}
           </Routes>

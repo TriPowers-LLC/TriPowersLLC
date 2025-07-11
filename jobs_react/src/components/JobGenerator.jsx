@@ -10,6 +10,13 @@ export default function JobGenerator() {
       const res = await axios.post('/api/jobdescription', { prompt: input });
       const message = res.data.choices?.[0]?.message?.content;
       setDescription(message || 'No description generated.');
+
+      // save to your jobs store
+      const job = { title: input, description };
+      await axios.post('/api/jobs', job, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      onNewJob(); // let parent refetch
     } catch (err) {
       console.error(err);
       setDescription('Error generating description.');
