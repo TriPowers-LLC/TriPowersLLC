@@ -38,3 +38,5 @@ codealike.json
 .env
 .env.development
 .vs/
+# Ignore dot-net publish output
+/artifacts/
