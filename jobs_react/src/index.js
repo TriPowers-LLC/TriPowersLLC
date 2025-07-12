@@ -5,6 +5,12 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { Provider } from 'react-redux';
 import { store } from './actions/store';
+import axios from 'axios';
+
+axios.defaults.baseURL = process.env.REACT_APP_API_BASE_URL;
+if (!axios.defaults.baseURL) {
+  console.error('REACT_APP_API_BASE_URL is not set. Please check your .env file.');
+}
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

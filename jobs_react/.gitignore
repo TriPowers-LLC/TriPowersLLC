@@ -37,3 +37,4 @@ codealike.json
 # Local env files
 .env
 .env.development
+.vs/
