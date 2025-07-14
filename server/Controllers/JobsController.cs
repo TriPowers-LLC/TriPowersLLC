@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TriPowersLLC.Models;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize] // Ensure this controller requires authentication
 public class JobsController : ControllerBase
 {
     private readonly JobDBContext _db;

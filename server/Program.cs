@@ -8,8 +8,31 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using TriPowersLLC.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 0. JWT Authentication
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrEmpty(jwtKey))
+    throw new InvalidOperationException("Missing Jwt:Key in configuration");
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer           = false,
+            ValidateAudience         = false,
+            ValidateLifetime         = true,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
 
 // 1. EF Core
 builder.Services.AddDbContext<JobDBContext>(opts =>
@@ -25,6 +48,7 @@ builder.Services.AddHttpClient("OpenAI", client =>
             builder.Configuration["OpenAI:ApiKey"]
         );
 });
+
 
 // 3. Controllers
 builder.Services.AddControllersWithViews();
@@ -54,7 +78,8 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseCors("AllowAll");
-// app.UseAuthentication(); // if you add JWT later
+
+app.UseAuthentication(); // 4a. Use authentication
 app.UseAuthorization();
 
 // 5a. Map API controllers
