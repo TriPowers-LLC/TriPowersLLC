@@ -1,10 +1,17 @@
 {
+  "routes": [
+    {
+      "route": "/api/*",
+      "rewrite": "https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net/api/*"
+    }
+  ],
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [
-      "/assets/*",       
-      "/favicon.*",      
+      "/assets/*",
+      "/favicon.*",
       "/robots.txt"
     ]
   }
 }
+

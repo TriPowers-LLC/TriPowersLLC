@@ -20,7 +20,7 @@ export default function Login() {
         localStorage.setItem('token', data.token);
       } else {
         // fallback: immediately log in after register
-        const loginRes = await axios.post('/api/auth/login', creds);
+        const loginRes = await axios.post('/api/users/login', creds);
         localStorage.setItem('token', loginRes.data.token);
       }
       nav('/admin');
@@ -32,7 +32,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post('/api/auth/login', creds);
+      const { data } = await axios.post('/api/users/login', creds);
       localStorage.setItem('token', data.token);
       nav('/admin');
     } catch (e) {
