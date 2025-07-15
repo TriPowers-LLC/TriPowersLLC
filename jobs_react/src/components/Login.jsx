@@ -13,7 +13,13 @@ export default function Login() {
   // after registering, your backend should return { token }
   const handleRegister = async () => {
     try {
-      const { data } = await axios.post('/api/users/register', creds);
+      const API = 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net'
+
+      const { data } = await axios.post(
+        `${API}/api/users/register`,
+        creds
+      );
+
       // if your register endpoint only returns { id, username },
       // you’ll need to then call login, or change it to issue a token.
       if (data.token) {
@@ -25,6 +31,7 @@ export default function Login() {
       }
       nav('/admin');
     } catch (e) {
+      console.error(e.response?.status, e.response?.data ?? e.message);
       setError(e.response?.data || 'Registration failed');
     }
   };
@@ -32,11 +39,18 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await axios.post('/api/users/login', creds);
+      const API = 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net'
+
+      const { data } = await axios.post(
+        `${API}/api/users/login`,
+        creds
+      );
+
       localStorage.setItem('token', data.token);
       nav('/admin');
     } catch (e) {
-      setError('Invalid credentials');
+      console.error(e.response?.status, e.response?.data ?? e.message);
+      setError('Registration failed—see console.');
     }
   };
 
