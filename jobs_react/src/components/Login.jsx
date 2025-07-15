@@ -3,6 +3,8 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
+const API = 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net';
+
 export default function Login() {
   // rename to match backend DTOs
   const [creds, setCreds] = useState({ username: '', password: '' });
@@ -13,47 +15,37 @@ export default function Login() {
   // after registering, your backend should return { token }
   const handleRegister = async () => {
     try {
-      const API = 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net'
-
       const { data } = await axios.post(
         `${API}/api/users/register`,
         creds
       );
 
-      // if your register endpoint only returns { id, username },
-      // you’ll need to then call login, or change it to issue a token.
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-      } else {
-        // fallback: immediately log in after register
-        const loginRes = await axios.post('/api/users/login', creds);
-        localStorage.setItem('token', loginRes.data.token);
-      }
+      const token = data.token
+        ? data.token
+        : (await axios.post(`${API}/api/users/login`, creds)).data.token;
+
+      localStorage.setItem('token', token);
       nav('/admin');
     } catch (e) {
       console.error(e.response?.status, e.response?.data ?? e.message);
-      setError(e.response?.data || 'Registration failed');
+      setError(e.response?.data?.message || 'Registration failed');
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const API = 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net'
-
       const { data } = await axios.post(
         `${API}/api/users/login`,
         creds
       );
-
       localStorage.setItem('token', data.token);
       nav('/admin');
     } catch (e) {
       console.error(e.response?.status, e.response?.data ?? e.message);
-      setError('Registration failed—see console.');
+      setError('Login failed—see console.');
     }
   };
-
   return (
     <div className="max-w-sm mx-auto p-4">
       <h2 className="text-2xl mb-4">{isRegister ? 'Register' : 'Log In'}</h2>
