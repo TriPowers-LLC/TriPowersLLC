@@ -40,6 +40,7 @@ builder.Services.AddDbContext<JobDBContext>(opts =>
 
 // 2. Named OpenAI HttpClient
 var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+Console.WriteLine($"[DEBUG] Using OpenAI key prefix: {openAiApiKey?.Substring(0, 10)}…");
 if (string.IsNullOrEmpty(openAiApiKey))
     throw new InvalidOperationException("Missing OpenAI:ApiKey in configuration");
 if (string.IsNullOrEmpty(builder.Configuration["OpenAI:BaseUrl"]))

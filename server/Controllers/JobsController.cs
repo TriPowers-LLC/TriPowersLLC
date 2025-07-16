@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TriPowersLLC.Models;
 using Microsoft.AspNetCore.Authorization;
+using System;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -9,7 +10,17 @@ using Microsoft.AspNetCore.Authorization;
 public class JobsController : ControllerBase
 {
     private readonly JobDBContext _db;
-    public JobsController(JobDBContext db) => _db = db;
+    public JobsController(JobDBContext db)
+    {
+        _db = db;
+
+        // If you have access to configuration, inject it and use here
+        // Example: IConfiguration _config, then use _config["OpenAI:ApiKey"]
+        // Remove or adjust the following line as needed:
+        // var key = builder.Configuration["OpenAI:ApiKey"];
+        // Console.WriteLine($"[DEBUG] Using OpenAI key prefix: {key?.Substring(0, 4)}…");
+    }
+
 
     // GET /api/jobs
     [HttpGet]

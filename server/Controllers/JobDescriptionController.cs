@@ -21,35 +21,63 @@ namespace TriPowersLLC.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost]
+       [HttpPost]
         public async Task<IActionResult> Generate([FromBody] JobPrompt request)
         {
-            // If you want to override headers here, you could still do:
-            // var apiKey = _configuration["OpenAI:ApiKey"];
-
-            var prompt = $"Write a detailed and professional job description for the following: {request.Prompt}";
-
-            var requestBody = new
+            var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/chat/completions")
             {
-                model = "gpt-o4-mini",
-                messages = new[]
+                Content = new StringContent(JsonSerializer.Serialize(new {
+                    model = "gpt-4.1",
+                    messages = new[] {
+                        new { role = "system", content = "You write professional job descriptions." },
+                        new { role = "user",   content = request.Prompt }
+                    }
+                }), Encoding.UTF8, "application/json")
+            };
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await _openAiClient.SendAsync(httpRequest);
+                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 {
-                    new { role = "system", content = "You are a helpful assistant that writes job descriptions." },
-                    new { role = "user",   content = prompt }
+                    // Log all rate‐limit headers
+                    foreach (var header in response.Headers)
+                    {
+                        if (header.Key.StartsWith("x-ratelimit-", StringComparison.OrdinalIgnoreCase) ||
+                            header.Key.Equals("Retry-After", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Console.WriteLine($"[OPENAI RATE] {header.Key}: {string.Join(", ", header.Value)}");
+                        }
+                    }
+                    // Optionally read Retry-After header:
+                    var retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds;
+                    return StatusCode(429, new
+                    {
+                        error = "Rate limit exceeded. Please wait and try again.",
+                        retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds
+                    });
+
                 }
-            };
-
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, "v1/chat/completions")
+                response.EnsureSuccessStatusCode();
+            }
+            catch (HttpRequestException ex)
             {
-                Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
-            };
+                Console.WriteLine("[OPENAI ERROR] " + ex.Message);
 
-            var response = await _openAiClient.SendAsync(httpRequest);
-            response.EnsureSuccessStatusCode();
+                return StatusCode(502, new { error = "Failed to call OpenAI: " + ex.Message });
+            }
 
-            // If you want only the text, parse it here; otherwise just return raw JSON
-            var json = await response.Content.ReadAsStringAsync();
-            return Ok(json);
+            var content = await response.Content.ReadAsStringAsync();
+            using var doc = JsonDocument.Parse(content);
+            var message = doc
+                .RootElement
+                .GetProperty("choices")[0]
+                .GetProperty("message")
+                .GetProperty("content")
+                .GetString() ?? "";
+
+            return Ok(new { description = message });
         }
     }
 
