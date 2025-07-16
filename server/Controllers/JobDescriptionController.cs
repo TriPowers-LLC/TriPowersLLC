@@ -31,7 +31,7 @@ namespace TriPowersLLC.Controllers
 
             var requestBody = new
             {
-                model = "gpt-4",
+                model = "gpt-o4-mini",
                 messages = new[]
                 {
                     new { role = "system", content = "You are a helpful assistant that writes job descriptions." },

@@ -23,11 +23,17 @@ const App = ()=> {
   const [data, setData] = useState('');
 
   useEffect(() => {
-    (async function () {
-      const { text } = await( await fetch(`/api/message`)).json();
+  (async () => {
+    const res = await fetch(`/api/message`);
+    if (res.ok) {
+      const { text } = await res.json();
       setData(text);
-    })();
-  });
+    } else {
+      console.error('Message fetch failed:', res.status);
+    }
+  })();
+}, []);      // ← run only once on mount
+  console.log('App data:', data); // Debugging line to check fetched data
   return (
     <> 
       <Provider store={store}>

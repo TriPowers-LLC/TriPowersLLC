@@ -39,9 +39,14 @@ builder.Services.AddDbContext<JobDBContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 // 2. Named OpenAI HttpClient
+var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+if (string.IsNullOrEmpty(openAiApiKey))
+    throw new InvalidOperationException("Missing OpenAI:ApiKey in configuration");
+if (string.IsNullOrEmpty(builder.Configuration["OpenAI:BaseUrl"]))
+    throw new InvalidOperationException("Missing OpenAI:BaseUrl in configuration");
 builder.Services.AddHttpClient("OpenAI", client =>
 {
-    client.BaseAddress = new Uri("https://api.openai.com/");
+    client.BaseAddress = new Uri(builder.Configuration["OpenAI:BaseUrl"]);
     client.DefaultRequestHeaders.Authorization =
         new AuthenticationHeaderValue(
             "Bearer",
