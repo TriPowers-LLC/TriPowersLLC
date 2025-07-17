@@ -12,7 +12,8 @@ namespace TriPowersLLC.Models
         public string Location { get; set; } = null!;
         public string EmploymentType { get; set; } = null!;
         public string VendorName { get; set; } = null!;
-        public int Salary { get; set; }
+        public int SalaryRangeMin { get; set; }
+        public int SalaryRangeMax { get; set; }
         public string? Benefits { get; set; }
     }
 }

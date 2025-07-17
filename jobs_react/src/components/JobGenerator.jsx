@@ -29,23 +29,49 @@ Return ONLY JSON.
 `;
 
     try {
-      const aiRes = await axios.post(
-        '/api/jobdescription',
-        { model: 'gpt-4.1',
-          messages: [
-            { role: 'system', content: systemMsg },
-            { role: 'user',   content: userMsg }
-          ]
-        }
-      );
+      // Build a single prompt string combining title, location, and any extra context
+      const fullPrompt = `
+          Role: ${title}
+          Location: ${location}
+          Context: ${prompt}
+
+          Generate JSON with description, responsibilities, requirements, salaryRange.
+          `;
+
+                const aiRes = await axios.post(
+                  '/api/jobdescription',
+                  { prompt: fullPrompt }
+                );
 
       // Parse the AI’s JSON
-      const raw = aiRes.data.choices?.[0]?.message?.content?.trim();
+      // 1) get the raw blob
+      let jsonText = aiRes.data.description?.trim() || '';
+      if (!jsonText) {
+        setError('No description returned from AI.');
+        return;
+      }
+
+      // 2) strip code fences if present
+      if (jsonText.startsWith('```')) {
+        // split lines and drop the first and last
+        const lines = jsonText.split('\n');
+        // remove ```json or ``` at start
+        lines.shift();
+        // remove trailing ```
+        if (lines[lines.length - 1].trim().startsWith('```')) {
+          lines.pop();
+        }
+        jsonText = lines.join('\n');
+      }
+
+      // 3) now try parse
       let parsed;
       try {
-        parsed = JSON.parse(raw);
-      } catch {
-        throw new Error('AI did not return valid JSON:\n' + raw);
+        parsed = JSON.parse(jsonText);
+      } catch (err) {
+        console.error('Failed to parse cleaned JSON:', jsonText, err);
+        setError('AI returned malformed JSON. See console.');
+        return;
       }
 
       // Combine user + AI content
@@ -53,49 +79,29 @@ Return ONLY JSON.
         title,
         location,
         description       : parsed.description,
-        responsibilities  : parsed.responsibilities,
-        requirements      : parsed.requirements,
-        salaryRange       : parsed.salaryRange
+        responsibilities  : parsed.responsibilities.join('; '),
+        requirements      : parsed.requirements.join('; '),
+        salaryRange       : `${parsed.salaryRangeMin}-${parsed.salaryRangeMax}`
       };
       setJobDraft(fullJob);
 
-      // Persist to backend
-      await axios.post(
-        '/api/jobs',
-        fullJob,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
+      // 4) persist to your backend
+    await axios.post('/api/jobs', fullJob, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    onNewJob();
 
-      onNewJob();
-    } catch (e) {
-      console.error(e);
-      console.error("JobDescription 502 body:", e.response?.data);
-
-      if (e.response?.status === 429) {
-        const headers = e.response.headers;
-        console.group('Rate Limit Info');
-        console.log('Retry-After:', headers['retry-after']);
-        console.log('Limit Requests:', headers['x-ratelimit-limit-requests']);
-        console.log('Remaining Requests:', headers['x-ratelimit-remaining-requests']);
-        console.groupEnd();
-        const { retryAfter, error: msg } = e.response.data;
-        const wait = retryAfter ?? 10;          // default to 10s if null
-        console.log('Rate limit error:', msg, 'retryAfter:', retryAfter);
-        // Use retryAfter from JSON
-        setError(msg);
-        console.warn(`Rate limited—retrying in ${wait}s…`);
-        setTimeout(handleGenerate, wait * 1000);
-        return;  // bail out so we don't run the setError below again
-      } 
-      setError(
-        e.response?.data?.error ||
-        e.message ||
-        'Failed to generate job info.'
-      );
-} finally {
+  } catch (e) {
+    console.error('JobDescription error payload:', e.response?.data);
+    setError(
+      e.response?.data?.error ||
+      e.message ||
+      'Failed to generate job info.'
+    );
+  } finally {
     setIsGenerating(false);
-    }
   }
+};
 
   return (
     <div className="p-4 max-w-xl mx-auto space-y-4">

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// server/Controllers/JobDescriptionController.cs
+using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +8,12 @@ using Microsoft.Extensions.Configuration;            // ← for IConfiguration
 
 namespace TriPowersLLC.Controllers
 {
+    public class ChatMessage
+    {
+        public string Role { get; set; } = null!;
+        public string Content { get; set; } = null!;
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class JobDescriptionController : ControllerBase
@@ -20,20 +27,26 @@ namespace TriPowersLLC.Controllers
             _openAiClient = factory.CreateClient("OpenAI");
             _configuration = configuration;
         }
+        public class ChatRequest
+        {
+            public string Model { get; set; } = null!;
+            public ChatMessage[] Messages { get; set; } = null!;
+        }
 
        [HttpPost]
-        public async Task<IActionResult> Generate([FromBody] JobPrompt request)
+        public async Task<IActionResult> Generate([FromBody] ChatRequest request)
         {
             var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/chat/completions")
             {
-                Content = new StringContent(JsonSerializer.Serialize(new {
-                    model = "gpt-4.1",
-                    messages = new[] {
-                        new { role = "system", content = "You write professional job descriptions." },
-                        new { role = "user",   content = request.Prompt }
-                    }
-                }), Encoding.UTF8, "application/json")
-            };
+                Content = new StringContent(
+                    JsonSerializer.Serialize(new {
+                        model = request.Model,
+                        messages = request.Messages
+            }),
+            Encoding.UTF8,
+            "application/json"
+        )
+    };
 
             HttpResponseMessage response;
             try

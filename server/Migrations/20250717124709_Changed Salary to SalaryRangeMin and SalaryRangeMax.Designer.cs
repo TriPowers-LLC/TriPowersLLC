@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TriPowersLLC.Models;
 
@@ -11,9 +12,11 @@ using TriPowersLLC.Models;
 namespace TriPowersLLC.Migrations
 {
     [DbContext(typeof(JobDBContext))]
-    partial class JobDBContextModelSnapshot : ModelSnapshot
+    [Migration("20250717124709_Changed Salary to SalaryRangeMin and SalaryRangeMax")]
+    partial class ChangedSalarytoSalaryRangeMinandSalaryRangeMax
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
