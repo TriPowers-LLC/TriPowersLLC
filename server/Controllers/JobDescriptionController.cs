@@ -27,27 +27,26 @@ namespace TriPowersLLC.Controllers
             _openAiClient = factory.CreateClient("OpenAI");
             _configuration = configuration;
         }
-        public class ChatRequest
-        {
-            public string Model { get; set; } = null!;
-            public ChatMessage[] Messages { get; set; } = null!;
-        }
 
        [HttpPost]
-        public async Task<IActionResult> Generate([FromBody] ChatRequest request)
+        public async Task<IActionResult> Generate([FromBody] JobPrompt request)
         {
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, "/v1/chat/completions")
-            {
-                Content = new StringContent(
-                    JsonSerializer.Serialize(new {
-                        model = request.Model,
-                        messages = request.Messages
-            }),
-            Encoding.UTF8,
-            "application/json"
-        )
-    };
-
+            // build the chat payload here:
+        var chatBody = new {
+            model    = "gpt-3.5-turbo",
+            messages = new[] {
+                new { role = "system",  content = "You output JSON." },
+                new { role = "user",    content = request.Prompt }
+            }
+        };
+        var httpReq = new HttpRequestMessage(HttpMethod.Post, "/v1/chat/completions")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(chatBody),
+                Encoding.UTF8,
+                "application/json"
+            )
+        };
             HttpResponseMessage response;
             try
             {
@@ -96,6 +95,6 @@ namespace TriPowersLLC.Controllers
 
     public class JobPrompt
     {
-        public string? Prompt { get; set; }
+        public string Prompt { get; set; }
     }
 }
