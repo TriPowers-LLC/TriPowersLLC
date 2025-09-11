@@ -39,20 +39,13 @@ builder.Services.AddDbContext<JobDBContext>(opts =>
     opts.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 // 2. Named OpenAI HttpClient
-var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
-Console.WriteLine($"[DEBUG] Using OpenAI key prefix: {openAiApiKey?.Substring(0, 10)}…");
-if (string.IsNullOrEmpty(openAiApiKey))
-    throw new InvalidOperationException("Missing OpenAI:ApiKey in configuration");
-if (string.IsNullOrEmpty(builder.Configuration["OpenAI:BaseUrl"]))
-    throw new InvalidOperationException("Missing OpenAI:BaseUrl in configuration");
-builder.Services.AddHttpClient("OpenAI", client =>
+
+builder.Services.AddHttpClient("openai", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["OpenAI:BaseUrl"]);
-    client.DefaultRequestHeaders.Authorization =
-        new AuthenticationHeaderValue(
-            "Bearer",
-            builder.Configuration["OpenAI:ApiKey"]
-        );
+    client.BaseAddress = new Uri("https://api.openai.com");
+    var key = builder.Configuration["OpenAI:ApiKey"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+    if (!string.IsNullOrWhiteSpace(key))
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", key);
 });
 
 
@@ -64,6 +57,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
+var baseUrl = builder.Configuration["Some:BaseUrl"];
+if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var serviceUri))
+{
+    serviceUri = new Uri("https://api.tripowersllc.com/");
+}
+
 
 var app = builder.Build();
 

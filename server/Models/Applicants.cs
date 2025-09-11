@@ -8,18 +8,18 @@ namespace TriPowersLLC.Models
     {
         [Key]
         public int id { get; set; }
-        public string firstName { get; set; }
-        public string lastName { get; set; }
-        public string email { get; set; }
-        public string password { get; set; }
-        public string phone { get; set; }
-        public string streetAddress { get; set; }
-        public string city { get; set; }
-        public string state { get; set; }
-        public string country { get; set; }
+        public required string firstName { get; set; }
+        public required string lastName { get; set; }
+        public required string email { get; set; }
+        public required string password { get; set; }
+        public required string phone { get; set; }
+        public required string streetAddress { get; set; }
+        public required string city { get; set; }
+        public required string state { get; set; }
+        public required string country { get; set; }
         [Column(TypeName = "nvarchar(10)")]
-        public string zipCode { get; set; }
-        public string ResumeText { get; set; } = null!;
+        public required string zipCode { get; set; }
+        public required string ResumeText { get; set; } = null!;
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
         public int JobId { get; set; }
         public Job Job { get; set; } = null!;

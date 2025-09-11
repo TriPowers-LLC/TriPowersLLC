@@ -5,96 +5,88 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;            // ← for IConfiguration
+using Models.JobDescriptionRequest;
 
 namespace TriPowersLLC.Controllers
 {
-    public class ChatMessage
-    {
-        public string Role { get; set; } = null!;
-        public string Content { get; set; } = null!;
-    }
-
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/jobdescription")]
     public class JobDescriptionController : ControllerBase
     {
-        private readonly HttpClient _openAiClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<JobDescriptionController> _logger;
 
-        // Inject IHttpClientFactory and IConfiguration
-        public JobDescriptionController(IHttpClientFactory factory, IConfiguration configuration)
+        public JobDescriptionController(
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration,
+            ILogger<JobDescriptionController> logger)
         {
-            _openAiClient = factory.CreateClient("OpenAI");
+            _httpClientFactory = httpClientFactory;
             _configuration = configuration;
+            _logger = logger;
         }
 
-       [HttpPost]
-        public async Task<IActionResult> Generate([FromBody] JobPrompt request)
+        [HttpPost]
+        public async Task<IActionResult> Generate([FromBody] JobDescriptionRequest input)
         {
-            // build the chat payload here:
-        var chatBody = new {
-            model    = "gpt-3.5-turbo",
-            messages = new[] {
-                new { role = "system",  content = "You output JSON." },
-                new { role = "user",    content = request.Prompt }
-            }
-        };
-        var httpReq = new HttpRequestMessage(HttpMethod.Post, "/v1/chat/completions")
-        {
-            Content = new StringContent(
-                JsonSerializer.Serialize(chatBody),
-                Encoding.UTF8,
-                "application/json"
-            )
-        };
-            HttpResponseMessage response;
-            try
+            if (string.IsNullOrWhiteSpace(input?.Prompt))
+                return BadRequest(new { error = "Prompt is required." });
+
+            // If OpenAI key is present, call the API; otherwise return a fallback.
+            var apiKey = _configuration["OpenAI:ApiKey"] ?? System.Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+
+            if (string.IsNullOrWhiteSpace(apiKey))
             {
-                response = await _openAiClient.SendAsync(httpRequest);
-                if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                var fallback = $"Job Description for: {input.Prompt}\n\n" +
+                               $"Summary:\n- …\n\nResponsibilities:\n- …\n\nRequirements:\n- …\n\nPreferred Qualifications:\n- …";
+                return Ok(new { choices = new[] { new { message = new { content = fallback } } } });
+            }
+
+            var client = _httpClientFactory.CreateClient("openai"); // registered in Program.cs below
+
+            var payload = new
+            {
+                model = "gpt-4o-mini",
+                messages = new object[]
                 {
-                    // Log all rate‐limit headers
-                    foreach (var header in response.Headers)
-                    {
-                        if (header.Key.StartsWith("x-ratelimit-", StringComparison.OrdinalIgnoreCase) ||
-                            header.Key.Equals("Retry-After", StringComparison.OrdinalIgnoreCase))
-                        {
-                            Console.WriteLine($"[OPENAI RATE] {header.Key}: {string.Join(", ", header.Value)}");
-                        }
-                    }
-                    // Optionally read Retry-After header:
-                    var retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds;
-                    return StatusCode(429, new
-                    {
-                        error = "Rate limit exceeded. Please wait and try again.",
-                        retryAfter = response.Headers.RetryAfter?.Delta?.TotalSeconds
-                    });
-
+                    new { role = "system", content = "You are an HR assistant that writes clear, concise job descriptions. Respond in polished plain text." },
+                    new { role = "user",   content = input.Prompt }
                 }
-                response.EnsureSuccessStatusCode();
-            }
-            catch (HttpRequestException ex)
+            };
+
+            using var req = new HttpRequestMessage(HttpMethod.Post, "/v1/chat/completions")
             {
-                Console.WriteLine("[OPENAI ERROR] " + ex.Message);
+                Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
+            };
 
-                return StatusCode(502, new { error = "Failed to call OpenAI: " + ex.Message });
+            // If the named client isn't preconfigured with the header, set it here as a safety net:
+            if (!client.DefaultRequestHeaders.Contains("Authorization"))
+                req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            var resp = await client.SendAsync(req);
+            var body = await resp.Content.ReadAsStringAsync();
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogError("OpenAI error {Status}: {Body}", resp.StatusCode, body);
+                var fallback = $"Job Description for: {input.Prompt}\n\n" +
+                               $"Summary:\n- …\n\nResponsibilities:\n- …\n\nRequirements:\n- …\n\nPreferred Qualifications:\n- …";
+                return Ok(new { choices = new[] { new { message = new { content = fallback } } } });
             }
 
-            var content = await response.Content.ReadAsStringAsync();
-            using var doc = JsonDocument.Parse(content);
-            var message = doc
-                .RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString() ?? "";
+            // Minimal extraction of choices[0].message.content
+            using var doc = JsonDocument.Parse(body);
+            var content = doc.RootElement
+                             .GetProperty("choices")[0]
+                             .GetProperty("message")
+                             .GetProperty("content")
+                             .GetString();
 
-            return Ok(new { description = message });
+            if (string.IsNullOrWhiteSpace(content))
+                content = "No description generated.";
+
+            return Ok(new { choices = new[] { new { message = new { content } } } });
         }
-    }
-
-    public class JobPrompt
-    {
-        public string Prompt { get; set; }
     }
 }
