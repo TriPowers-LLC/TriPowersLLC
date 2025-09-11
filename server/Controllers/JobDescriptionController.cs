@@ -1,11 +1,13 @@
 ﻿// server/Controllers/JobDescriptionController.cs
 using Microsoft.AspNetCore.Mvc;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;            // ← for IConfiguration
-using Models.JobDescriptionRequest;
+using TriPowersLLC.Models; // ← for JobDescriptionRequest
 
 namespace TriPowersLLC.Controllers
 {

@@ -36,7 +36,7 @@ builder.Services
 
 // 1. EF Core
 builder.Services.AddDbContext<JobDBContext>(opts =>
-    opts.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 2. Named OpenAI HttpClient
 
