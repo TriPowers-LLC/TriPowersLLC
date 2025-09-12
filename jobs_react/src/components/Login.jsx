@@ -3,8 +3,6 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net';
-
 export default function Login() {
   // rename to match backend DTOs
   const [creds, setCreds] = useState({ username: '', password: '' });
@@ -16,13 +14,13 @@ export default function Login() {
   const handleRegister = async () => {
     try {
       const { data } = await axios.post(
-        `${API}/api/users/register`,
+        '/api/users/register',
         creds
       );
 
       const token = data.token
         ? data.token
-        : (await axios.post(`${API}/api/users/login`, creds)).data.token;
+        : (await axios.post('/api/users/login', creds)).data.token;
 
       localStorage.setItem('token', token);
       nav('/admin');
@@ -36,7 +34,7 @@ export default function Login() {
     e.preventDefault();
     try {
       const { data } = await axios.post(
-        `${API}/api/users/login`,
+        '/api/users/login',
         creds
       );
       localStorage.setItem('token', data.token);
