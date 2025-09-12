@@ -37,6 +37,9 @@ codealike.json
 # Local env files
 .env
 .env.development
+.env.production
+.env.*
+!.env.example
 .vs/
 # Ignore dot-net publish output
 /artifacts/

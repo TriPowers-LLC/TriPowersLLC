@@ -60,8 +60,18 @@ builder.Services.AddControllersWithViews();
 // 4. Swagger / CORS / etc.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
-    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
+var allowedOrigins = new[]
+{
+    "https://www.tripowersllc.com",
+    "https://tripowersllc.com",
+    "https://tri-powers-llc.vercel.app" // previews
+};
+
+builder.Services.AddCors(o => o.AddPolicy("AllowWeb", p =>
+    p.WithOrigins(allowedOrigins)
+     .AllowAnyHeader()
+     .AllowAnyMethod()));
 
 var baseUrl = builder.Configuration["Some:BaseUrl"];
 if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var serviceUri))
@@ -88,7 +98,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors("AllowAll");
+app.UseCors("AllowWeb");
 
 app.UseAuthentication(); // 4a. Use authentication
 app.UseAuthorization();
