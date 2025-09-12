@@ -65,3 +65,8 @@ TriPowers LLC is a certified SDVOSB, minority, and veteran-owned small business.
 
 ## 📁 Project Structure
 
+### Configuration
+
+The API reads its database connection string from the environment. Set the
+`DEFAULT_CONNECTION` environment variable to your SQL Server connection string
+before running the application. The value in `server/appsettings.json` is only a placeholder.

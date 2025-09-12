@@ -35,8 +35,13 @@ builder.Services
     });
 
 // 1. EF Core
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                       ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
+
 builder.Services.AddDbContext<JobDBContext>(opts =>
-    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opts.UseSqlServer(connectionString));
 
 // 2. Named OpenAI HttpClient
 
