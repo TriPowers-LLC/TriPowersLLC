@@ -10,7 +10,7 @@ A modern, full-stack web platform built to showcase TriPowers LLC’s capabiliti
 
 ## 🚀 Live Demo
 
-🔗 _Coming Soon_
+🔗 www.tripowersllc.com
 
 ---
 
@@ -64,6 +64,60 @@ TriPowers LLC is a certified SDVOSB, minority, and veteran-owned small business.
 ---
 
 ## 📁 Project Structure
+
+- server/ – ASP.NET Core 8 backend configured with JWT authentication and Entity Framework Core for database access
+
+- functions/ – Node.js Azure Functions app containing a SendGrid-powered email function and scripts for running with Azure Functions Core Tools
+
+- jobs_react/ – React front end built with Vite and targeting Node.js 20.x
+
+## Running components locally
+
+- Backend (server/)
+
+    1. Install the .NET 8 SDK and a local SQL Server or compatible connection.
+
+    2. cd server
+
+    3. dotnet restore
+
+    4. Provide configuration values (e.g., connection string and JWT key) via appsettings.json or environment variables.
+
+    5. dotnet run – launches the API on the default ASP.NET Core ports.
+
+- Serverless Functions (functions/)
+
+    1. Install Node.js (matching the project’s version) and Azure Functions Core Tools v4.
+
+    2. cd functions
+
+    3. npm install
+
+    4. Set SENDGRID_KEY in the environment for email delivery.
+
+    5. npm start (runs func start) to host the functions on http://localhost:7071.
+
+- Frontend (jobs_react/)
+
+    1. Ensure Node.js 20.x and npm are installed.
+
+    2. cd jobs_react
+
+    3. npm install
+
+    4. npm run dev – starts the Vite development server (default http://localhost:5173).
+
+## Required tooling
+
+- .NET 8 SDK
+
+- Node.js 20.x & npm
+
+- Azure Functions Core Tools v4
+
+- (Optional) Local SQL Server or another EF Core–supported database
+
+- SendGrid API key for the email function
 
 ### Configuration
 
