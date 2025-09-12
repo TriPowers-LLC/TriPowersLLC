@@ -3,7 +3,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
-const API = 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net';
+const API = 'https://tripowersllc-api-gwc9crgrfpcxaqee.centralus-01.azurewebsites.net';
 
 export default function Login() {
   // rename to match backend DTOs
