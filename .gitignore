@@ -126,3 +126,5 @@ bin/
 .vs/TriPowersLLC/v17/.suo
 
 azure-static-web-apps-*
+server/publish/
+server/publish.zip

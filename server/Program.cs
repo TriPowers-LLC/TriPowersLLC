@@ -65,13 +65,21 @@ var allowedOrigins = new[]
 {
     "https://www.tripowersllc.com",
     "https://tripowersllc.com",
-    "https://tri-powers-llc.vercel.app" // previews
+    "https://tri-powers-llc.vercel.app", // previews
+    "api.tripowersllc.com"
 };
 
-builder.Services.AddCors(o => o.AddPolicy("AllowWeb", p =>
-    p.WithOrigins(allowedOrigins)
-     .AllowAnyHeader()
-     .AllowAnyMethod()));
+builder.Services.AddCors(o =>
+{
+    o.AddPolicy("AllowWeb", p =>
+        p.WithOrigins(allowedOrigins)
+         .AllowAnyHeader()
+         .AllowAnyMethod());
+    o.AddPolicy("AllowAll", p =>
+        p.AllowAnyOrigin()
+         .AllowAnyHeader()
+         .AllowAnyMethod());
+});
 
 var baseUrl = builder.Configuration["Some:BaseUrl"];
 if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var serviceUri))
@@ -81,6 +89,8 @@ if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var serviceUri))
 
 
 var app = builder.Build();
+
+app.UseCors("AllowWeb");
 
 if (app.Environment.IsDevelopment())
 {
@@ -98,9 +108,9 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors("AllowWeb");
 
-app.UseAuthentication(); // 4a. Use authentication
+
+app.UseAuthentication(); 
 app.UseAuthorization();
 
 // 5a. Map API controllers
