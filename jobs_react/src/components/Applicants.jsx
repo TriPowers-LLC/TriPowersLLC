@@ -2,6 +2,7 @@ import React, {useEffect} from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchAll } from "../actions/store";
 import NavBar from "./NavBar";
+import { auth } from "../api";
 
 
 function Applicants(props) {
@@ -10,7 +11,7 @@ function Applicants(props) {
       name: "New Applicant",
       email: "newapplicant@example.com"
     };
-    const res = await axios.post("/api/applicants", applicantPayload); // create applicant
+    const res = await axios.api.post("/applicants", applicantPayload); // create applicant
   };
   const applicant = useSelector((state) => state.applicants.applicants);
   const loading = useSelector((state) => state.applicants.loading);

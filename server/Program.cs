@@ -16,7 +16,10 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // 0. JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtKey =
+    builder.Configuration["Jwt:Key"]
+    ?? builder.Configuration["Jwt__Key"];
+
 if (string.IsNullOrEmpty(jwtKey))
     throw new InvalidOperationException("Missing Jwt:Key in configuration");
 
@@ -35,8 +38,10 @@ builder.Services
     });
 
 // 1. EF Core
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                       ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? builder.Configuration.GetConnectionString("DEFAULT")
+    ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
 
@@ -63,6 +68,7 @@ builder.Services.AddSwaggerGen();
 
 var allowedOrigins = new[]
 {
+    "http://localhost:5173",
     "https://www.tripowersllc.com",
     "https://tripowersllc.com",
     "https://tri-powers-llc.vercel.app", // previews
@@ -114,6 +120,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 // 5a. Map API controllers
+// Health endpoint that matches your frontend base (/api)
+app.MapGet("/api/health", () => Results.Ok(new { ok = true, time = DateTimeOffset.UtcNow }))
+   .RequireCors("AllowWeb") // ensure CORS headers
+   .AllowAnonymous();
+
+// Catch-all OPTIONS so preflights don't 404 while you're wiring routes
+app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.NoContent())
+   .RequireCors("AllowWeb")
+   .AllowAnonymous();
+   
 app.MapControllers();
 
 app.MapControllerRoute(

@@ -12,6 +12,8 @@ import Portfolio from './components/Portfolio';
 import Careers from './components/Careers';
 import Admin from './components/Admin';
 import Login from './components/Login';
+import api from './api/client';
+import { Navigate } from 'react-router-dom';
 
 function RequireAuth({ children }) {
   return localStorage.getItem('token')
@@ -24,16 +26,15 @@ const App = ()=> {
 
   useEffect(() => {
   (async () => {
-    const res = await fetch(`/api/message`);
-    if (res.ok) {
-      const { text } = await res.json();
-      setData(text);
-    } else {
-      console.error('Message fetch failed:', res.status);
+    try {
+      const res = await api.get('/health'); // was `/api/message`; use a real endpoint
+      setData(JSON.stringify(res.data));
+    } catch (err) {
+      console.error('API check failed:', err.message);
     }
-  })();
-}, []);      // ← run only once on mount
-  console.log('App data:', data); // Debugging line to check fetched data
+    })();
+  }, []);
+
   return (
     <> 
       <Provider store={store}>
