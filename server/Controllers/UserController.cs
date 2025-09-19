@@ -15,7 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace TriPowersLLC.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/users")]
     public class UsersController : ControllerBase
     {
         private readonly JobDBContext _db;

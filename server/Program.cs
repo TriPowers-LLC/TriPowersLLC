@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,7 +14,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using DotNetEnv;
 
+DotNetEnv.Env.Load();
+if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,7 +44,7 @@ builder.Services
     });
 
 // 1. EF Core
-var connectionString =
+var   connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? builder.Configuration.GetConnectionString("DEFAULT")
     ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
@@ -71,20 +77,22 @@ var allowedOrigins = new[]
     "http://localhost:5173",
     "https://www.tripowersllc.com",
     "https://tripowersllc.com",
-    "https://tri-powers-llc.vercel.app", // previews
-    "api.tripowersllc.com"
+    "https://tri-powers-llc.vercel.app",
 };
 
 builder.Services.AddCors(o =>
 {
-    o.AddPolicy("AllowWeb", p =>
-        p.WithOrigins(allowedOrigins)
-         .AllowAnyHeader()
-         .AllowAnyMethod());
-    o.AddPolicy("AllowAll", p =>
-        p.AllowAnyOrigin()
-         .AllowAnyHeader()
-         .AllowAnyMethod());
+    // Default policy used globally
+    o.AddDefaultPolicy(p => p
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+
+    // Keep the named policy too (if you ever want endpoint-level use)
+    o.AddPolicy("AllowWeb", p => p
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 });
 
 var baseUrl = builder.Configuration["Some:BaseUrl"];
@@ -95,8 +103,6 @@ if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var serviceUri))
 
 
 var app = builder.Build();
-
-app.UseCors("AllowWeb");
 
 if (app.Environment.IsDevelopment())
 {
@@ -109,27 +115,34 @@ else
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
+// *** CORS middleware MUST run here ***
+app.UseCors();  // <- default policy
 
-
-app.UseAuthentication(); 
+app.UseAuthentication();
 app.UseAuthorization();
 
-// 5a. Map API controllers
-// Health endpoint that matches your frontend base (/api)
+app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
+{
+    var lines = new List<string>();
+    foreach (var src in sources)
+        foreach (var ep in src.Endpoints.OfType<RouteEndpoint>())
+            lines.Add($"HTTP: {string.Join(",", ep.Metadata.OfType<HttpMethodMetadata>().FirstOrDefault()?.HttpMethods ?? new[] { "*" })}  {ep.RoutePattern.RawText}");
+    return Results.Text(string.Join(Environment.NewLine, lines), "text/plain");
+}).AllowAnonymous();
+
 app.MapGet("/api/health", () => Results.Ok(new { ok = true, time = DateTimeOffset.UtcNow }))
-   .RequireCors("AllowWeb") // ensure CORS headers
    .AllowAnonymous();
 
-// Catch-all OPTIONS so preflights don't 404 while you're wiring routes
+// Let all preflights succeed
 app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.NoContent())
-   .RequireCors("AllowWeb")
    .AllowAnonymous();
-   
+
 app.MapControllers();
 
 app.MapControllerRoute(
