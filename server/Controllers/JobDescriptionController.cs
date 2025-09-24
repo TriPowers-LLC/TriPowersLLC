@@ -55,17 +55,18 @@ namespace TriPowersLLC.Controllers
                     new
                     {
                         role = "user",
-                        content = "Generate a job description for the following request:\n\n",
-                                   input.Prompt + "\n\n",
-                                   "Respond with valid JSON only, matching this schema exactly:\n",
-                                   "{\n",
-                                   "  \"description\": string,                     // concise summary paragraph\n",
-                                   "  \"responsibilities\": string[],              // bullet-ready statements\n",
-                                   "  \"requirements\": string[],                  // bullet-ready statements\n",
-                                   "  \"salaryMin\": number,                       // annual salary lower bound in USD\n",
-                                   "  \"salaryMax\": number                        // annual salary upper bound in USD\n",
-                                   "}\n\n",
-                                   "Do not wrap the JSON in code fences or include any additional commentary.\n"
+                        content = 
+                            "Generate a job description for the following request:\n\n" +
+                            input.Prompt + "\n\n" +
+                            "Respond with valid JSON only, matching this schema exactly:\n" +
+                            "{\n" +
+                            "  \"description\": string,                     // concise summary paragraph\n" +
+                            "  \"responsibilities\": string[],              // bullet-ready statements\n" +
+                            "  \"requirements\": string[],                  // bullet-ready statements\n" +
+                            "  \"salaryMin\": number,                       // annual salary lower bound in USD\n" +
+                            "  \"salaryMax\": number                        // annual salary upper bound in USD\n" +
+                            "}\n\n" +
+                            "Do not wrap the JSON in code fences or include any additional commentary.\n"
                     }
                 }
             };
