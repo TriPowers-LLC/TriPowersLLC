@@ -139,6 +139,73 @@ app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
 app.MapGet("/api/health", () => Results.Ok(new { ok = true, time = DateTimeOffset.UtcNow }))
    .AllowAnonymous();
 
+app.MapGet("/__ef", () =>
+{
+    var names = new[] {
+        "Microsoft.EntityFrameworkCore",
+        "Microsoft.EntityFrameworkCore.Relational",
+        "Microsoft.EntityFrameworkCore.SqlServer"
+    };
+    var list = AppDomain.CurrentDomain.GetAssemblies()
+        .Where(a => names.Contains(a.GetName().Name))
+        .Select(a => new { a.GetName().Name, Version = a.GetName().Version!.ToString() });
+    return Results.Json(list);
+}).AllowAnonymous();
+
+app.MapGet("/_assemblies", () =>
+{
+    object TryGet(Func<(string name, string ver)> f)
+    {
+        try
+        {
+            var (name, ver) = f();
+            return new { name, version = ver, ok = true };
+        }
+        catch (Exception ex)
+        {
+            return new { ok = false, error = ex.GetType().Name, message = ex.Message };
+        }
+    }
+
+    var sql = TryGet(() => {
+        var asm = typeof(Microsoft.Data.SqlClient.SqlConnection).Assembly.GetName();
+        return (asm.Name!, asm.Version!.ToString());
+    });
+
+    var ef = TryGet(() => {
+        var asm = typeof(Microsoft.EntityFrameworkCore.SqlServerDbContextOptionsExtensions).Assembly.GetName();
+        return (asm.Name!, asm.Version!.ToString());
+    });
+
+    var loaded = AppDomain.CurrentDomain
+        .GetAssemblies()
+        .Select(a => a.GetName())
+        .Where(n => n.Name!.Contains("SqlClient", StringComparison.OrdinalIgnoreCase)
+                 || n.Name!.Contains("EntityFrameworkCore.SqlServer", StringComparison.OrdinalIgnoreCase))
+        .Select(n => new { n.Name, Version = n.Version?.ToString() })
+        .ToArray();
+
+    return Results.Json(new { sql, ef, loaded }, statusCode: 200);
+}).AllowAnonymous();
+
+app.MapGet("/api/dbcheck", async (IConfiguration cfg) =>
+{
+    var cs = cfg.GetConnectionString("DefaultConnection")
+             ?? cfg["DEFAULT_CONNECTION"]
+             ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
+
+    try
+    {
+        using var con = new Microsoft.Data.SqlClient.SqlConnection(cs);
+        await con.OpenAsync();
+        return Results.Ok(new { ok = true, serverVersion = con.ServerVersion });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.ToString());
+    }
+}).AllowAnonymous();
+
 // Let all preflights succeed
 app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.NoContent())
    .AllowAnonymous();
