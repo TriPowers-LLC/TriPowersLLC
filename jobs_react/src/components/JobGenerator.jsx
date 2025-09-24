@@ -1,6 +1,97 @@
 import { useState } from 'react';
 import axios from 'axios';
 
+function ensureStringArray(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => (typeof item === 'string' ? item.trim() : '')).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(/\r?\n|;|\.|\u2022|\-/)
+      .map(part => part.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function parseSalaryRange(rangeText) {
+  if (!rangeText || typeof rangeText !== 'string') {
+    return { min: null, max: null };
+  }
+
+  const normalized = rangeText.replace(/to/gi, '-');
+  const matches = normalized.match(/\$?\d[\d,]*(?:\.\d+)?\s*[kKmMbB]?/g);
+
+  if (!matches) {
+    return { min: null, max: null };
+  }
+
+  const values = matches
+    .map(token => {
+      const magnitude = token.match(/[kKmMbB]/);
+      let multiplier = 1;
+      if (magnitude) {
+        switch (magnitude[0].toLowerCase()) {
+          case 'k':
+            multiplier = 1_000;
+            break;
+          case 'm':
+            multiplier = 1_000_000;
+            break;
+          case 'b':
+            multiplier = 1_000_000_000;
+            break;
+          default:
+            multiplier = 1;
+        }
+      }
+
+      const numericPortion = token.replace(/[^0-9.]/g, '');
+      const baseNumber = Number.parseFloat(numericPortion);
+
+      if (Number.isNaN(baseNumber)) {
+        return null;
+      }
+
+      return Math.round(baseNumber * multiplier);
+    })
+    .filter(value => typeof value === 'number' && !Number.isNaN(value));
+
+  if (!values.length) {
+    return { min: null, max: null };
+  }
+
+  const [first, second] = values;
+  const min = first;
+  const max = second ?? first;
+
+  return { min, max };
+}
+
+function coerceNumericValue(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.round(value);
+  }
+
+  if (typeof value === 'string') {
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    if (!cleaned) {
+      return null;
+    }
+
+    const parsed = Number.parseFloat(cleaned);
+    if (Number.isNaN(parsed)) {
+      return null;
+    }
+
+    return Math.round(parsed);
+  }
+
+  return null;
+}
+
 export default function JobGenerator({ onNewJob }) {
   const [title, setTitle]               = useState('');
   const [location, setLocation]         = useState('');
@@ -21,12 +112,17 @@ export default function JobGenerator({ onNewJob }) {
       Role: ${title}
       Location: ${location}
       Context: ${prompt || 'No additional context provided.'}
-      Generate JSON with description, responsibilities, requirements, and salary range.
+      Generate JSON with description, responsibilities, requirements, employmentType, vendorName, salaryRange.
+
+          Requirements:
+          - Output strictly valid JSON.
+          - salaryRange must clearly indicate the minimum and maximum values.
       `;   
       const aiRes = await useActionState.post(
         '/api/generate-job-description',
         { prompt: fullPrompt }
       );
+
       if (aiRes.status !== 200) {
         setError('Failed to generate job description.');
         return;
@@ -66,7 +162,7 @@ export default function JobGenerator({ onNewJob }) {
     await axios.post('/api/jobs', fullJob, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
-    
+
     onNewJob();
 
   } catch (e) {
@@ -127,6 +223,12 @@ export default function JobGenerator({ onNewJob }) {
           <h3 className="text-lg font-bold">{jobDraft.title}</h3>
           <p className="italic text-sm">{jobDraft.location}</p>
           <p className="mt-2">{jobDraft.description}</p>
+          <p className="mt-2 text-sm">
+            <strong>Employment Type:</strong> {jobDraft.employmentType}
+          </p>
+          <p className="text-sm">
+            <strong>Vendor:</strong> {jobDraft.vendorName}
+          </p>
 
           <h4 className="mt-4 font-semibold">Responsibilities</h4>
           <ul className="list-disc list-inside">
@@ -139,7 +241,7 @@ export default function JobGenerator({ onNewJob }) {
           </ul>
 
           <p className="mt-4">
-            <strong>Salary Range:</strong> {jobDraft.salaryRange}
+            <strong>Salary Range:</strong> {jobDraft.salaryRange || `${jobDraft.salaryRangeMin} - ${jobDraft.salaryRangeMax}`}
           </p>
         </div>
       )}
