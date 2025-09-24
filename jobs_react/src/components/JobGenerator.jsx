@@ -14,63 +14,26 @@ export default function JobGenerator({ onNewJob }) {
     setJobDraft(null);
     setIsGenerating(true);
 
-    // We give the AI a prompt that references the user’s title & location
-    const systemMsg = 'You are an assistant that outputs valid JSON only.';
-    const userMsg   = `
-Generate the following fields for a job:
-- description (string)
-- responsibilities (array of strings)
-- requirements (array of strings)
-- salaryRange (string)
-
-The role is "${title}" located in "${location}".  
-Keep tone professional and concise.  
-Return ONLY JSON.
-`;
 
     try {
       // Build a single prompt string combining title, location, and any extra context
       const fullPrompt = `
-          Role: ${title}
-          Location: ${location}
-          Context: ${prompt}
-
-          Generate JSON with description, responsibilities, requirements, salaryRange.
-          `;
-
-                const aiRes = await axios.post(
-                  '/api/jobdescription',
-                  { prompt: fullPrompt }
-                );
-
-      // Parse the AI’s JSON
-      // 1) get the raw blob
-      let jsonText = aiRes.data.description?.trim() || '';
-      if (!jsonText) {
-        setError('No description returned from AI.');
+      Role: ${title}
+      Location: ${location}
+      Context: ${prompt || 'No additional context provided.'}
+      Generate JSON with description, responsibilities, requirements, and salary range.
+      `;   
+      const aiRes = await useActionState.post(
+        '/api/generate-job-description',
+        { prompt: fullPrompt }
+      );
+      if (aiRes.status !== 200) {
+        setError('Failed to generate job description.');
         return;
       }
-
-      // 2) strip code fences if present
-      if (jsonText.startsWith('```')) {
-        // split lines and drop the first and last
-        const lines = jsonText.split('\n');
-        // remove ```json or ``` at start
-        lines.shift();
-        // remove trailing ```
-        if (lines[lines.length - 1].trim().startsWith('```')) {
-          lines.pop();
-        }
-        jsonText = lines.join('\n');
-      }
-
-      // 3) now try parse
-      let parsed;
-      try {
-        parsed = JSON.parse(jsonText);
-      } catch (err) {
-        console.error('Failed to parse cleaned JSON:', jsonText, err);
-        setError('AI returned malformed JSON. See console.');
+      const { description, responsibilities, requirements, salaryRangeMin, salaryRangeMax } = aiRes.data || {};
+      if (!description || !Array.isArray(responsibilities) || !Array.isArray(requirements)) {
+        setError('Incomplete job data received from AI.');
         return;
       }
 
@@ -78,17 +41,32 @@ Return ONLY JSON.
       const fullJob = {
         title,
         location,
-        description       : parsed.description,
-        responsibilities  : parsed.responsibilities.join('; '),
-        requirements      : parsed.requirements.join('; '),
-        salaryRange       : `${parsed.salaryRangeMin}-${parsed.salaryRangeMax}`
+        description,
+        responsibilities  : responsibilities.join('; '),
+        requirements      : requirements.join('; '),
+        salaryRangeMin    : salaryRangeMin ?? null,
+        salaryRangeMax    : salaryRangeMax ?? null
       };
-      setJobDraft(fullJob);
+      setJobDraft({
+        title,
+        location,
+        description,
+        responsibilities  : responsibilities.join('; '),
+        requirements      : requirements.join('; '),
+        salaryRange: salaryRangeMin != null && salaryRangeMax != null
+          ? `${salaryRangeMin} - ${salaryRangeMax}`
+          : salaryRangeMin != null
+          ? `${salaryRangeMin} +`
+          : salaryRangeMax != null
+            ? `Up to ${salaryRangeMax}`
+            : 'Not specified'
+      });
 
       // 4) persist to your backend
     await axios.post('/api/jobs', fullJob, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
+    
     onNewJob();
 
   } catch (e) {
