@@ -1,13 +1,13 @@
 // src/components/Admin.jsx
 import { useState, useEffect } from 'react';
 import JobGenerator from './JobGenerator';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 
 const Admin = () => {
   const [jobs, setJobs] = useState([]);
 
   const fetchJobs = async () => {
-    const res = await axios.get('/api/jobs', {
+    const res = await apiClient.get('jobs', {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
     setJobs(res.data);
@@ -34,4 +34,4 @@ const Admin = () => {
   );
 }
 
-export default Admin
+export default Admin;

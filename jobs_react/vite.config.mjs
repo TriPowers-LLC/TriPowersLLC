@@ -1,10 +1,12 @@
-import path from "path"
+import path from "path";
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(),] ,
+const shouldProxyApi = !process.env.VITE_API_BASE_URL;
+
+const config = {
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -13,7 +15,10 @@ export default defineConfig({
       'styles': path.resolve(__dirname, './src/styles'),
     },
   },
-  server: {
+  };
+
+if (shouldProxyApi) {
+  config.server = {
     proxy: {
       // Forward any /api/* request to your App Service
       '/api': {
@@ -24,6 +29,8 @@ export default defineConfig({
         rewrite: path => path,  // keep the /api prefix
       },
     },
-  },
-});
+  };
+}
+
+export default defineConfig(config);
 // https://vitejs.dev/config/

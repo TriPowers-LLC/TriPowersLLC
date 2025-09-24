@@ -1,7 +1,7 @@
 import React, { useState, useEffect} from 'react';
 import { store } from './actions/store';
 import { Provider } from "react-redux";
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Home from './components/Home';
 import UnderConstruction from './components/UnderConstruction';
@@ -13,7 +13,7 @@ import Careers from './components/Careers';
 import Admin from './components/Admin';
 import Login from './components/Login';
 import api from './api/client';
-import { Navigate } from 'react-router-dom';
+import apiClient from './api/client';
 
 function RequireAuth({ children }) {
   return localStorage.getItem('token')
@@ -27,7 +27,7 @@ const App = ()=> {
   useEffect(() => {
   (async () => {
     try {
-      const res = await api.get('/health'); // was `/api/message`; use a real endpoint
+      const res = await apiClient.get('/health'); // was `/api/message`; use a real endpoint
       setData(JSON.stringify(res.data));
     } catch (err) {
       console.error('API check failed:', err.message);

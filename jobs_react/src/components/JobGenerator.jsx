@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 
 function ensureStringArray(value) {
   if (Array.isArray(value)) {
@@ -159,7 +159,7 @@ export default function JobGenerator({ onNewJob }) {
       });
 
       // 4) persist to your backend
-    await axios.post('/api/jobs', fullJob, {
+    await apiClient.post('jobs', fullJob, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
 
