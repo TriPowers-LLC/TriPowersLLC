@@ -52,4 +52,4 @@ jobs:
           app-name: 'tripowersllc-api'
           slot-name: 'Production'
           package: ${{ github.workspace }}/publish
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLIS_PROFILE }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
