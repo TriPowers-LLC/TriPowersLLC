@@ -10,7 +10,7 @@ using Microsoft.Extensions.Configuration;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
-
+using Microsoft.AspNetCore.Http;
 
 namespace TriPowersLLC.Controllers
 {
@@ -19,12 +19,24 @@ namespace TriPowersLLC.Controllers
     public class UsersController : ControllerBase
     {
         private readonly JobDBContext _db;
-        private readonly IConfiguration _config;
+        private readonly string _jwtKey;
 
         public UsersController(JobDBContext db, IConfiguration config)
         {
             _db = db;
-            _config = config;
+           var configuredKey = config["Jwt:Key"] ?? config["Jwt__Key"];
+
+            if (string.IsNullOrWhiteSpace(configuredKey))
+            {
+                throw new InvalidOperationException("JWT signing key is not configured. Set 'Jwt:Key' to a value that is at least 16 bytes long.");
+            }
+
+            if (Encoding.UTF8.GetByteCount(configuredKey) < 16)
+            {
+                throw new InvalidOperationException("JWT signing key must be at least 16 bytes when encoded as UTF-8 to satisfy HMAC-SHA256 requirements.");
+            }
+
+            _jwtKey = configuredKey;
         }
 
         // POST /api/users/login
@@ -43,7 +55,14 @@ namespace TriPowersLLC.Controllers
                 return Unauthorized();
 
             // 3. Generate JWT
-            var token = GenerateJwtToken(user.Id);
+            var tokenResult = GenerateJwtToken(user.Id);
+            if (tokenResult.Result != null)
+            {
+                return tokenResult.Result;
+            }
+
+            var token = tokenResult.Value!;
+
 
             // 4. Return token (and optionally user info)
             return Ok(new { token, user = new { user.Id, user.Username } });
@@ -72,16 +91,29 @@ namespace TriPowersLLC.Controllers
             await _db.SaveChangesAsync();
 
             // 4. Generate JWT
-            var token = GenerateJwtToken(user.Id);
+           var tokenResult = GenerateJwtToken(user.Id);
+            if (tokenResult.Result != null)
+            {
+                return tokenResult.Result;
+            }
+
+            var token = tokenResult.Value!;
 
             // 5. Return token (and optionally user info)
             return Ok(new { token, user = new { user.Id, user.Username } });
         }
 
         // ----- HELPER -----
-        private string GenerateJwtToken(int userId)
+        private ActionResult<string> GenerateJwtToken(int userId)
         {
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            if (string.IsNullOrWhiteSpace(_jwtKey) || Encoding.UTF8.GetByteCount(_jwtKey) < 16)
+            {
+                return Problem(
+                    detail: "The JWT signing key is not properly configured. Ensure 'Jwt:Key' is set and at least 16 bytes when encoded as UTF-8.",
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var claims = new[] { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) };
             var token = new JwtSecurityToken(
