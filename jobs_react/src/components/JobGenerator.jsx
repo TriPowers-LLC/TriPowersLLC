@@ -118,9 +118,9 @@ export default function JobGenerator({ onNewJob }) {
           - Output strictly valid JSON.
           - salaryRange must clearly indicate the minimum and maximum values.
       `;   
-      const aiRes = await apiClientpost(
-        { prompt: fullPrompt }
-      );
+      const aiRes = await apiClient.post('jobdescription', {
+        prompt: fullPrompt
+      });
 
       if (aiRes.status !== 200) {
         setError('Failed to generate job description.');
