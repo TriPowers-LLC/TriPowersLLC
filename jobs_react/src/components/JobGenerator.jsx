@@ -118,8 +118,7 @@ export default function JobGenerator({ onNewJob }) {
           - Output strictly valid JSON.
           - salaryRange must clearly indicate the minimum and maximum values.
       `;   
-      const aiRes = await useActionState.post(
-        '/api/generate-job-description',
+      const aiRes = await apiClientpost(
         { prompt: fullPrompt }
       );
 
@@ -127,7 +126,13 @@ export default function JobGenerator({ onNewJob }) {
         setError('Failed to generate job description.');
         return;
       }
-      const { description, responsibilities, requirements, salaryRangeMin, salaryRangeMax } = aiRes.data || {};
+       const {
+        description,
+        responsibilities,
+        requirements,
+        salaryMin,
+        salaryMax
+      } = aiRes.data || {};
       if (!description || !Array.isArray(responsibilities) || !Array.isArray(requirements)) {
         setError('Incomplete job data received from AI.');
         return;
@@ -140,22 +145,27 @@ export default function JobGenerator({ onNewJob }) {
         description,
         responsibilities  : responsibilities.join('; '),
         requirements      : requirements.join('; '),
-        salaryRangeMin    : salaryRangeMin ?? null,
-        salaryRangeMax    : salaryRangeMax ?? null
+        salaryRangeMin    : salaryMin ?? null,
+        salaryRangeMax   : salaryMax ?? null
       };
+
+      const salaryRangeLabel = salaryMin != null && salaryMax != null
+        ? `${salaryMin} - ${salaryMax}`
+        : salaryMin != null
+          ? `${salaryMin}+`
+          : salaryMax != null
+            ? `Up to ${salaryMax}`
+            : 'Not specified';
+
       setJobDraft({
         title,
         location,
         description,
-        responsibilities  : responsibilities.join('; '),
-        requirements      : requirements.join('; '),
-        salaryRange: salaryRangeMin != null && salaryRangeMax != null
-          ? `${salaryRangeMin} - ${salaryRangeMax}`
-          : salaryRangeMin != null
-          ? `${salaryRangeMin} +`
-          : salaryRangeMax != null
-            ? `Up to ${salaryRangeMax}`
-            : 'Not specified'
+        responsibilities,
+        requirements,
+        salaryRangeMin: salaryMin ?? null,
+        salaryRangeMax: salaryMax ?? null,
+        salaryRangeLabel
       });
 
       // 4) persist to your backend
@@ -223,13 +233,6 @@ export default function JobGenerator({ onNewJob }) {
           <h3 className="text-lg font-bold">{jobDraft.title}</h3>
           <p className="italic text-sm">{jobDraft.location}</p>
           <p className="mt-2">{jobDraft.description}</p>
-          <p className="mt-2 text-sm">
-            <strong>Employment Type:</strong> {jobDraft.employmentType}
-          </p>
-          <p className="text-sm">
-            <strong>Vendor:</strong> {jobDraft.vendorName}
-          </p>
-
           <h4 className="mt-4 font-semibold">Responsibilities</h4>
           <ul className="list-disc list-inside">
             {jobDraft.responsibilities.map((r,i) => <li key={i}>{r}</li>)}
@@ -241,7 +244,7 @@ export default function JobGenerator({ onNewJob }) {
           </ul>
 
           <p className="mt-4">
-            <strong>Salary Range:</strong> {jobDraft.salaryRange || `${jobDraft.salaryRangeMin} - ${jobDraft.salaryRangeMax}`}
+             <strong>Salary Range:</strong> {jobDraft.salaryRangeLabel}
           </p>
         </div>
       )}
