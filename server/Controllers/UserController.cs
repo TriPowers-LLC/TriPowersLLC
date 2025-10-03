@@ -46,13 +46,18 @@ namespace TriPowersLLC.Controllers
         {
             // 1. Find user
             var user = await _db.Users.SingleOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return NotFound();
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Invalid username or password." });
+            }
 
             // 2. Verify password
-            using var hmac = new HMACSHA512(user.PasswordSalt);
+                using var hmac = new HMACSHA512(user.PasswordSalt);
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
             if (!computedHash.SequenceEqual(user.PasswordHash))
-                return Unauthorized();
+               {
+                return Unauthorized(new { message = "Invalid username or password." });
+            }
 
             // 3. Generate JWT
             var tokenResult = GenerateJwtToken(user.Id);
