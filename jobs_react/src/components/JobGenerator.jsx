@@ -96,6 +96,8 @@ export default function JobGenerator({ onNewJob }) {
   const [title, setTitle]               = useState('');
   const [location, setLocation]         = useState('');
   const [prompt, setPrompt]             = useState('');
+  const [vendorName, setVendorName]     = useState('TriPowers LLC');
+  const [employmentType, setEmploymentType] = useState('Full-Time');
   const [jobDraft, setJobDraft]         = useState(null);
   const [error, setError]               = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -146,7 +148,9 @@ export default function JobGenerator({ onNewJob }) {
         responsibilities  : responsibilities.join('; '),
         requirements      : requirements.join('; '),
         salaryRangeMin    : salaryMin ?? null,
-        salaryRangeMax   : salaryMax ?? null
+        salaryRangeMax   : salaryMax ?? null,
+        vendorName,
+        employmentType
       };
 
       const salaryRangeLabel = salaryMin != null && salaryMax != null
@@ -165,7 +169,9 @@ export default function JobGenerator({ onNewJob }) {
         requirements,
         salaryRangeMin: salaryMin ?? null,
         salaryRangeMax: salaryMax ?? null,
-        salaryRangeLabel
+        salaryRangeLabel,
+        vendorName,
+        employmentType
       });
 
       // 4) persist to your backend
@@ -218,10 +224,34 @@ export default function JobGenerator({ onNewJob }) {
         onChange={e => setPrompt(e.target.value)}
       />
 
+      {/* Vendor name */}
+      <input
+        type="text"
+        className="w-full border p-2 rounded"
+        placeholder="Vendor name"
+        value={vendorName}
+        onChange={e => setVendorName(e.target.value)}
+      />
+
+      {/* Employment type */}
+      <select
+        className="w-full border p-2 rounded"
+        value={employmentType}
+        onChange={e => setEmploymentType(e.target.value)}
+      >
+        <option value="">Select employment type</option>
+        <option value="Full-Time">Full-Time</option>
+        <option value="Part-Time">Part-Time</option>
+        <option value="Contract">Contract</option>
+        <option value="Temporary">Temporary</option>
+        <option value="Internship">Internship</option>
+      </select>
+
+
       <button
         className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
         onClick={handleGenerate}
-        disabled={!title || !location || isGenerating}
+         disabled={!title || !location || !vendorName || !employmentType || isGenerating}
       >
         {isGenerating ? 'Generating…' : 'Generate & Save'}
       </button>
@@ -232,6 +262,8 @@ export default function JobGenerator({ onNewJob }) {
         <div className="bg-gray-50 p-4 rounded border">
           <h3 className="text-lg font-bold">{jobDraft.title}</h3>
           <p className="italic text-sm">{jobDraft.location}</p>
+          <p className="text-sm mt-1"><strong>Vendor:</strong> {jobDraft.vendorName}</p>
+          <p className="text-sm"><strong>Employment Type:</strong> {jobDraft.employmentType}</p>
           <p className="mt-2">{jobDraft.description}</p>
           <h4 className="mt-4 font-semibold">Responsibilities</h4>
           <ul className="list-disc list-inside">
