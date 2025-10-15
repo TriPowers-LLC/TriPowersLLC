@@ -2,7 +2,7 @@ import React, { useRef} from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import * as emailjs from "@emailjs/browser";
-import api from "../api/client";
+import functionsApi from "../api/functionsClient";
 
 gsap.registerPlugin(useGSAP);
 
@@ -24,9 +24,9 @@ const Contact = () => {
 
     try {
       const payload = Object.fromEntries(data);
-      // Use shared axios client so base URL is controlled by VITE_API_BASE_URL
-      // e.g. https://api.tripowersllc.com/api in production, or http://localhost:7071/api for local functions
-      await api.post("send-email", payload);
+      // Use dedicated Functions client so only this call targets the Functions host
+      // e.g. VITE_FUNCTIONS_BASE_URL=https://api.tripowersllc.com/api
+      await functionsApi.post("send-email", payload);
 
       alert("Thank you!  We'll be in touch shortly.");
       formRef.current.reset();
