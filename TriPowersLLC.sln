@@ -3,13 +3,38 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "server", "server", "{DAD03CFC-D5FA-AC94-41C7-9ABAB326F09E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriPowersLLC", "server\TriPowersLLC.csproj", "{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Debug|x64.Build.0 = Debug|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Debug|x86.Build.0 = Debug|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Release|x64.ActiveCfg = Release|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Release|x64.Build.0 = Release|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Release|x86.ActiveCfg = Release|Any CPU
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{123EA8D3-3C7F-4EA3-9A91-7B388D445E8F} = {DAD03CFC-D5FA-AC94-41C7-9ABAB326F09E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8C44AA1D-891A-40FE-A2B2-E76E7A71945D}
