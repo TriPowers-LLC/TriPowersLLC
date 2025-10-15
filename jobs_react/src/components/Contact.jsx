@@ -22,13 +22,19 @@ const Contact = () => {
     const data = new FormData(formRef.current);
 
     try {
-      await fetch("/api/send-email", {
+      const response = await fetch("/api/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(Object.fromEntries(data)),
-      })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || `Request failed with status ${response.status}`);
+      }
+
       alert("Thank you!  We'll be in touch shortly.");
       formRef.current.reset();
       }  catch (error) {
