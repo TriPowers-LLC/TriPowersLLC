@@ -2,6 +2,7 @@ import React, { useRef} from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import * as emailjs from "@emailjs/browser";
+import api from "../api/client";
 
 gsap.registerPlugin(useGSAP);
 
@@ -22,18 +23,10 @@ const Contact = () => {
     const data = new FormData(formRef.current);
 
     try {
-      const response = await fetch("/api/send-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(Object.fromEntries(data)),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Request failed with status ${response.status}`);
-      }
+      const payload = Object.fromEntries(data);
+      // Use shared axios client so base URL is controlled by VITE_API_BASE_URL
+      // e.g. https://api.tripowersllc.com/api in production, or http://localhost:7071/api for local functions
+      await api.post("send-email", payload);
 
       alert("Thank you!  We'll be in touch shortly.");
       formRef.current.reset();
