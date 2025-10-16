@@ -10,7 +10,7 @@ console.log('API base URL:', base);
 
 
 // Create axios instance
-export const api = axios.create({
+const api = axios.create({
   baseURL: base,                 // e.g. https://api.tripowersllc.com/api
 //   timeout: 45000,
   headers: { 'Content-Type': 'application/json' }
@@ -42,3 +42,5 @@ api.interceptors.response.use(
     return Promise.reject(new Error(msg));
   }
 );
+
+export default api;

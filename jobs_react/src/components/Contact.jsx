@@ -3,7 +3,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import * as emailjs from "@emailjs/browser";
 import functionsApi from "../api/functionsClient";
-import api from "../api/client";
+import api from "../api/apiClient";
 
 gsap.registerPlugin(useGSAP);
 

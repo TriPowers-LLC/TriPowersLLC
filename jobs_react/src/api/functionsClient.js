@@ -4,7 +4,7 @@ import axios from 'axios';
 const envBase = import.meta.env.VITE_FUNCTIONS_BASE_URL?.trim();
 const base = (envBase ? envBase : '/api').replace(/\/$/, '');
 
-export const functionsApi = axios.create({
+const functionsApi = axios.create({
   baseURL: base,
   headers: { 'Content-Type': 'application/json' }
 });
@@ -15,3 +15,5 @@ functionsApi.interceptors.request.use((config) => {
   }
   return config;
 });
+
+export default functionsApi;

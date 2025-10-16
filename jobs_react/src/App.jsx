@@ -12,8 +12,8 @@ import Portfolio from './components/Portfolio';
 import Careers from './components/Careers';
 import Admin from './components/Admin';
 import Login from './components/Login';
-import api from './api/client';
-import apiClient from './api/client';
+
+import api from './api/apiClient';
 
 function RequireAuth({ children }) {
   return localStorage.getItem('token')
@@ -27,7 +27,7 @@ const App = ()=> {
   useEffect(() => {
   (async () => {
     try {
-      const res = await apiClient.get('/health'); // was `/api/message`; use a real endpoint
+      const res = await api.get('/health'); // was `/api/message`; use a real endpoint
       setData(JSON.stringify(res.data));
     } catch (err) {
       console.error('API check failed:', err.message);
