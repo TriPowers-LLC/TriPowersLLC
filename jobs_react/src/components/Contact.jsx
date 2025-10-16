@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import * as emailjs from "@emailjs/browser";
 import functionsApi from "../api/functionsClient";
+import api from "../api/client";
 
 gsap.registerPlugin(useGSAP);
 
@@ -24,16 +25,22 @@ const Contact = () => {
 
     try {
       const payload = Object.fromEntries(data);
-      // Use dedicated Functions client so only this call targets the Functions host
-      // e.g. VITE_FUNCTIONS_BASE_URL=https://api.tripowersllc.com/api
+      // Primary: call Azure Functions host via VITE_FUNCTIONS_BASE_URL
       await functionsApi.post("send-email", payload);
 
       alert("Thank you!  We'll be in touch shortly.");
       formRef.current.reset();
-      }  catch (error) {
-      console.error("Error sending email:", error);
-      alert("There was an error sending your message. Please try again later.");
+    } catch (err1) {
+      // Fallback: call same-origin ASP.NET proxy at /api/send-email
+      try {
+        await api.post("/send-email", Object.fromEntries(data));
+        alert("Thank you!  We'll be in touch shortly.");
+        formRef.current.reset();
+      } catch (err2) {
+        console.error("Error sending email (both paths failed):", err1, err2);
+        alert("There was an error sending your message. Please try again later.");
       }
+    }
   }
 
   return (

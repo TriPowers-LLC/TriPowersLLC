@@ -10,7 +10,7 @@ console.log('API base URL:', base);
 
 
 // Create axios instance
-const api = axios.create({
+export const api = axios.create({
   baseURL: base,                 // e.g. https://api.tripowersllc.com/api
 //   timeout: 45000,
   headers: { 'Content-Type': 'application/json' }
@@ -26,6 +26,8 @@ api.interceptors.request.use((config) => {
   if (typeof config.url === 'string' && config.url.startsWith('/')) {
     config.url = config.url.slice(1);
   }
+  // optional: log the final URL for sanity
+  try { console.debug('[API]', new URL(config.url, config.baseURL).href); } catch {}
   return config;
 });
 
@@ -40,5 +42,3 @@ api.interceptors.response.use(
     return Promise.reject(new Error(msg));
   }
 );
-
-export default api;

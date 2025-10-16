@@ -1,5 +1,5 @@
 // src/api/users.js
-import api from './client';
+import api from './apiClient';
 
 export const getMe        = () => api.get('/users/me');
 export const updateMe     = (data) => api.put('/users/me', data);
