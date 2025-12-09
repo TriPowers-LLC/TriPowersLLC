@@ -13,4 +13,4 @@
 .env.production
 
 .env.test
-*.zip
+*.zipsendgrid.env
