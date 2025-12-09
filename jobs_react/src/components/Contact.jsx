@@ -2,14 +2,13 @@ import React, { useRef} from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import * as emailjs from "@emailjs/browser";
-import functionsApi from "../api/functionsClient";
-import api from "../api/apiClient";
+
 
 gsap.registerPlugin(useGSAP);
 
-/* const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
 const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY; */
+const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY; 
 
 
 const Contact = () => {
@@ -22,26 +21,27 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const data = new FormData(formRef.current);
+     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
+      console.error("EmailJS env vars are missing");
+      alert("Contact form is not configured yet. Please try again later.");
+      return;
+    }
 
     try {
-      const payload = Object.fromEntries(data);
-      // Primary: call Azure Functions host via VITE_FUNCTIONS_BASE_URL
-      await functionsApi.post("send-email", payload);
+      await emailjs.sendForm(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        formRef.current,
+        PUBLIC_KEY
+      );
 
-      alert("Thank you!  We'll be in touch shortly.");
+      alert("Thank you! We'll be in touch shortly.");
       formRef.current.reset();
-    } catch (err1) {
-      // Fallback: call same-origin ASP.NET proxy at /api/send-email
-      try {
-        await api.post("/send-email", Object.fromEntries(data));
-        alert("Thank you!  We'll be in touch shortly.");
-        formRef.current.reset();
-      } catch (err2) {
-        console.error("Error sending email (both paths failed):", err1, err2);
-        alert("There was an error sending your message. Please try again later.");
-      }
+    } catch (err) {
+      console.error("Error sending EmailJS message:", err);
+      alert("There was an error sending your message. Please try again later.");
     }
-  }
+  };
 
   return (
     <section

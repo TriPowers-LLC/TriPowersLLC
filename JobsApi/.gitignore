@@ -1,0 +1,16 @@
+/publish
+/bin
+/obj
+.vs
+*.user
+.env.development.local
+.env
+
+.env.local
+
+.env.development
+
+.env.production
+
+.env.test
+*.zipsendgrid.env

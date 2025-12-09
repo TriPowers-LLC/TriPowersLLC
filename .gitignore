@@ -128,3 +128,8 @@ bin/
 azure-static-web-apps-*
 server/publish/
 server/publish.zip
+functions/send-email-function.zip
+functions.zip
+/publish
+
+*.zip

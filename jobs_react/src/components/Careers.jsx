@@ -1,6 +1,6 @@
 // src/components/Careers.jsx
 import { useState, useEffect } from 'react';
-import apiClient from '../lib/apiClient';
+import jobsApi from '../api/jobsApiClient';
 import ApplicantForm from './ApplicantForm';
 
 export default function Careers() {
@@ -8,7 +8,7 @@ export default function Careers() {
   const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {
-    apiClient.get('jobs')
+    jobsApi.get('jobs')
       .then(res => setJobs(res.data))
       .catch(console.error);
   }, []);
