@@ -1,13 +1,15 @@
+using Microsoft.EntityFrameworkCore;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 using Microsoft.OpenApi;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
-using Appwrite;
-using Appwrite.Services;
-using Appwrite.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore.Design;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,15 +24,21 @@ builder.Services.AddCors(options =>
     });
 });
 
-var appwriteConfig = new AppwriteConfig
+/* var appwriteConfig = new AppwriteConfig
 {
     Endpoint = Environment.GetEnvironmentVariable("APPWRITE_ENDPOINT") ?? "https://sfo.cloud.appwrite.io/v1",   // e.g. your Appwrite endpoint
     ProjectId = Environment.GetEnvironmentVariable("APPWRITE_PROJECT_ID") ?? "6931e19600334b1440fa",
     ApiKey = Environment.GetEnvironmentVariable("APPWRITE_API_KEY") ?? "standard_749780b411decc1b7aa8fbb0c8ef1ee1c30b99c17cfe628a9384c6bd10568912c87b3b89aa3aba712753902d79bb6609a89a633a066f0854d1ffef16f178f08a93f8ca0525aa43311b0a7f7954c210d4442ca4cb69c9ef3b272014ecd5cf235019db706cdc2fc4976b7f0e348b5cfaa6b05e4985be43cab3c20e7f1c23e303dd",
     DatabaseId = Environment.GetEnvironmentVariable("APPWRITE_DATABASE_ID") ?? "6931e37b000d1dc0ec63",
     TableId = Environment.GetEnvironmentVariable("APPWRITE_TABLE_ID") ?? "jobs"
-};
+}; */
 
+var connectionString = Environment.GetEnvironmentVariable("RDS_CONNECTION_STRING")
+    ?? builder.Configuration.GetConnectionString("JobsDb");
+
+builder.Services.AddDbContext<JobsDbContext>(options =>
+    options.UseNpgsql(connectionString));
+/* 
 // Register Appwrite TablesDB client as a singleton
 builder.Services.AddSingleton(sp =>
 {
@@ -43,7 +51,7 @@ builder.Services.AddSingleton(sp =>
 });
 
 // Also register config so we can inject it
-builder.Services.AddSingleton(appwriteConfig);
+builder.Services.AddSingleton(appwriteConfig); */
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -65,23 +73,25 @@ app.UseCors("AllowAll");
 
 app.MapGet("/", () => "Jobs API is running");
 
-// GET /jobs  -> list jobs from Appwrite
-app.MapGet("/jobs", async (TablesDB tablesDb, AppwriteConfig cfg) =>
+app.MapGet("/jobs", async (JobsDbContext db) =>
 {
-    var rowsList = await tablesDb.ListRows(
-        databaseId: cfg.DatabaseId,
-        tableId: cfg.TableId
-    );
+    var now = DateTimeOffset.UtcNow;
 
-    var jobs = rowsList.Rows.Select(MapRowToJob).ToList();
+    var jobs = await db.Jobs
+        .Where(j => j.IsActive)
+        .Where(j => !j.PostedDate.HasValue || j.PostedDate <= now)
+        .Where(j => !j.ClosingDate.HasValue || j.ClosingDate >= now)
+        .OrderByDescending(j => j.PostedDate ?? j.CreatedAt)
+        .ToListAsync();
 
     return Results.Ok(jobs);
 });
 
-// POST /jobs  -> create a new job in Appwrite
-app.MapPost("/jobs", async (JobCreateRequest request, TablesDB tablesDb, AppwriteConfig cfg) =>
+
+/* // POST /jobs  -> create a new job in Appwrite
+app.MapPost("/jobs", async (JobCreateRequest request, TablesDB tablesDb, JobsDbContext db) =>
 {
-    // Map request to Appwrite row data
+    // Map request to DB row data
     var data = new Dictionary<string, object>
     {
         { "title", request.Title },
@@ -105,8 +115,8 @@ app.MapPost("/jobs", async (JobCreateRequest request, TablesDB tablesDb, Appwrit
     };
 
     var createdRow = await tablesDb.CreateRow(
-        databaseId: cfg.DatabaseId,
-        tableId: cfg.TableId,
+        databaseId: db.DatabaseId,
+        tableId: db.TableId,
         rowId: "unique()",
         data: data,
         permissions: permissions
@@ -118,13 +128,13 @@ app.MapPost("/jobs", async (JobCreateRequest request, TablesDB tablesDb, Appwrit
 });
 
 // GET /jobs/{id}  -> get single job by rowId
-app.MapGet("/jobs/{id}", async (string id, TablesDB tablesDb, AppwriteConfig cfg) =>
+app.MapGet("/jobs/{id}", async (string id, TablesDB tablesDb, JobsDbContext db) =>
 {
     try
     {
         var row = await tablesDb.GetRow(
-            databaseId: cfg.DatabaseId,
-            tableId: cfg.TableId,
+            databaseId: db.DatabaseId,
+            tableId: db.TableId,
             rowId: id
         );
 
@@ -137,13 +147,19 @@ app.MapGet("/jobs/{id}", async (string id, TablesDB tablesDb, AppwriteConfig cfg
         return Results.NotFound(new { message = ex.Message });
     }
 });
+ */
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
 
 
 // ------------ Helper mapping + models below -----------------
 
-static JobDto MapRowToJob(Row row)
+/* static JobDto MapRowToJob(Row row)
 {
     // Safely read fields from row.Data dictionary
     object? Get(string key) =>
@@ -159,7 +175,7 @@ static JobDto MapRowToJob(Row row)
         SalaryRange: Get("salaryRange")?.ToString() ?? string.Empty,
         EmploymentType: Get("employmentType")?.ToString() ?? string.Empty
     );
-}
+} */
 
 public record JobDto(
     string Id,
@@ -183,7 +199,7 @@ public class JobCreateRequest
     public string EmploymentType { get; set; } = string.Empty;
 }
 
-public class AppwriteConfig
+/* public class AppwriteConfig
 {
     public string Endpoint { get; set; } = string.Empty;
     public string ProjectId { get; set; } = string.Empty;
@@ -191,3 +207,4 @@ public class AppwriteConfig
     public string DatabaseId { get; set; } = string.Empty;
     public string TableId { get; set; } = string.Empty;
 }
+ */

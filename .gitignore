@@ -120,10 +120,11 @@ dist
 obj/
 bin/
 .vs/TriPowersLLC/v17/.suo
-.vs/TriPowersLLC/v17/.suo
 .vs/TriPowersLLC/v17/DocumentLayout.json
 .vs/TriPowersLLC/v17/.suo
 .vs/TriPowersLLC/v17/.suo
+.vs*
+.vs/CopilotitIndicies
 
 azure-static-web-apps-*
 server/publish/
@@ -133,3 +134,5 @@ functions.zip
 /publish
 
 *.zip
+.vercel
+.env*.local
