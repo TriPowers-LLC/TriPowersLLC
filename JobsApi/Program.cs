@@ -13,6 +13,8 @@ using Microsoft.EntityFrameworkCore.Design;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Console.WriteLine($"[Env] ASPNETCORE_ENVIRONMENT = {builder.Environment.EnvironmentName}");
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -36,8 +38,34 @@ builder.Services.AddCors(options =>
 var connectionString = Environment.GetEnvironmentVariable("RDS_CONNECTION_STRING")
     ?? builder.Configuration.GetConnectionString("JobsDb");
 
+// Read RDS env var (for AWS) and local config (for dev)
+var rdsConnection = Environment.GetEnvironmentVariable("RDS_CONNECTION_STRING");
+Console.WriteLine($"[Config] RDS_CONNECTION_STRING present? {!string.IsNullOrWhiteSpace(rdsConnection)}");
+
+var localConnection = builder.Configuration.GetConnectionString("JobsDb");
+Console.WriteLine($"[Config] Local ConnectionStrings:JobsDb present? {!string.IsNullOrWhiteSpace(localConnection)}");
+
 builder.Services.AddDbContext<JobsDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        Console.WriteLine("[Config] Environment=Development → using in-memory JobsDev DB");
+        options.UseInMemoryDatabase("JobsDev");
+    }
+    else if (!string.IsNullOrWhiteSpace(rdsConnection))
+    {
+        Console.WriteLine("[Config] Environment=Production → using RDS_CONNECTION_STRING");
+        options.UseNpgsql(rdsConnection);
+    }
+    else
+    {
+        throw new InvalidOperationException(
+            "No valid DB connection string found. " +
+            "In Production, set RDS_CONNECTION_STRING. " +
+            "In Development, ensure ASPNETCORE_ENVIRONMENT=Development so in-memory DB is used.");
+    }
+});
+
 /* 
 // Register Appwrite TablesDB client as a singleton
 builder.Services.AddSingleton(sp =>
@@ -148,15 +176,31 @@ app.MapGet("/jobs/{id}", async (string id, TablesDB tablesDb, JobsDbContext db) 
     }
 });
  */
-using (var scope = app.Services.CreateScope())
+// Only run migrations when NOT in Development (i.e., on AWS / real DB)
+if (!app.Environment.IsDevelopment())
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<JobsDbContext>();
-    db.Database.Migrate();
+
+    try
+    {
+        Console.WriteLine("[DB] Applying migrations...");
+        db.Database.Migrate();
+        Console.WriteLine("[DB] Migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("[DB] Migration failed: " + ex);
+        // You can decide whether to rethrow or just log
+        throw;
+    }
+}
+else
+{
+    Console.WriteLine("[DB] Development environment detected → skipping migrations (in-memory DB).");
 }
 
 app.Run();
-
-
 // ------------ Helper mapping + models below -----------------
 
 /* static JobDto MapRowToJob(Row row)
