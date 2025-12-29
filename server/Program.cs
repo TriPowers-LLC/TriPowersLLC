@@ -220,3 +220,5 @@ app.MapControllerRoute(
 );
 
 app.Run();
+
+public partial class Program { }
