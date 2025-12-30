@@ -1,8 +1,8 @@
 import React, {useEffect} from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchAll } from "../actions/store";
-import NavBar from "./NavBar";
-import { auth } from "../api";
+import { fetchAll } from "../../actions/store";
+import NavBar from "../../components/NavBar";
+import { auth } from "../../api";
 
 
 function Applicants(props) {

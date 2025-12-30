@@ -26,6 +26,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+builder.Services.AddAuthentication()
+    .AddJwtBearer();
+
 /* var appwriteConfig = new AppwriteConfig
 {
     Endpoint = Environment.GetEnvironmentVariable("APPWRITE_ENDPOINT") ?? "https://sfo.cloud.appwrite.io/v1",   // e.g. your Appwrite endpoint
