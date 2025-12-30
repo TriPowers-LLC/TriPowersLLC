@@ -24,5 +24,11 @@ namespace TriPowersLLC.Models
         public int JobId { get; set; }
         public Job Job { get; set; } = null!;
 
+        // JobsApi application fields
+        public string ResumeUrl { get; set; } = string.Empty;
+        public string CoverLetter { get; set; } = string.Empty;
+        public string LinkedInProfile { get; set; } = string.Empty;
+        public string PortfolioUrl { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
     }
 }

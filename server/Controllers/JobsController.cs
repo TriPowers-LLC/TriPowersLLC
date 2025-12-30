@@ -39,6 +39,12 @@ public class JobsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Job>> Create(Job job)
     {
+        // Initialize merged fields (from JobsApi)
+        job.CreatedAt = DateTime.UtcNow;
+        job.IsActive = job.IsActive; // keep client value if provided; defaults are set on model
+        job.Views = 0;
+        job.ApplicantsCount = 0;
+
         _db.Jobs.Add(job);
         await _db.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = job.Id }, job);
@@ -49,6 +55,8 @@ public class JobsController : ControllerBase
     public async Task<IActionResult> Update(int id, Job job)
     {
         if (id != job.Id) return BadRequest();
+
+        job.UpdatedAt = DateTime.UtcNow;
 
         _db.Entry(job).State = EntityState.Modified;
         try
