@@ -1,7 +1,7 @@
 // src/components/Admin.jsx
 import { useState, useEffect } from 'react';
-import JobGenerator from './JobGenerator';
-import apiClient from '../lib/apiClient';
+import JobGenerator from '../../components/JobGenerator';
+import apiClient from '../../lib/apiClient';
 
 const Admin = () => {
   const [jobs, setJobs] = useState([]);

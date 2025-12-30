@@ -1,19 +1,17 @@
-import React, { useState, useEffect} from 'react';
-import { store } from './actions/store';
-import { Provider } from "react-redux";
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Home from './components/Home';
-import UnderConstruction from './components/UnderConstruction';
 import Services from './components/Services';
 import Contact from './components/Contact';
 import About from './components/About';
 import Portfolio from './components/Portfolio';
-import Careers from './components/Careers';
-import Admin from './components/Admin';
+import Admin from './modules/admin/Admin';
 import Login from './components/Login';
-
-import api from './api/apiClient';
+import JobList from './components/public/JobList';
+import JobDetail from './components/public/JobDetail';
+import MyApplications from './components/applications/MyApplications';
 
 function RequireAuth({ children }) {
   return localStorage.getItem('token')
@@ -21,50 +19,61 @@ function RequireAuth({ children }) {
     : <Navigate to="/login" replace />;
 }
 
-const App = ()=> {
-  const [data, setData] = useState('');
+const PublicLayout = () => (
+  <>
+    <NavBar />
+    <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
+      <Outlet />
+    </main>
+  </>
+);
 
-  useEffect(() => {
-  (async () => {
-    try {
-      const res = await api.get('/health'); // was `/api/message`; use a real endpoint
-      setData(JSON.stringify(res.data));
-    } catch (err) {
-      console.error('API check failed:', err.message);
-    }
-    })();
-  }, []);
+ const AdminLayout = () => (
+  <>
+    <NavBar userRole="admin" />
+    <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
+      <Outlet />
+    </main>
+  </>
+);
+
+const App = () => {
 
   return (
-    <> 
-      <Provider store={store}>
-        <Router>       
-          <NavBar />
-          <Routes>
-            <Route path="/" element={<Home />} /> 
-            <Route path="/contact" element={<Contact />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/portfolio" element={<Portfolio />} />
-            <Route path="/careers" element={<Careers />} />
-            <Route path="/login" element={<Login />} />
-            <Route
-              path="/admin"
-              element={
-                <RequireAuth>
-                  <Admin />
-                </RequireAuth>
-              }
-            />
-
-            {/* <Route path="/" element={<UnderConstruction />} /> */}
-          </Routes>
-          <Services/>
-          
-        </Router>
-       
-      </Provider>
-    </>
+    <Router>
+      <Routes>
+        <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/jobs" element={<JobList />} />
+          <Route path="/apply/:id" element={<JobDetail />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/careers" element={<Careers />} />
+          <Route path="/services" element={<Services />} />
+          <Route path="/login" element={<Login />} />
+        </Route>
+        <Route element={<AdminLayout />}>
+          <Route
+            path="/admin"
+            element={
+              <RequireAuth>
+                <Admin />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin/applications"
+            element={
+              <RequireAuth>
+                <MyApplications />
+              </RequireAuth>
+            }
+          />
+        </Route>
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;
