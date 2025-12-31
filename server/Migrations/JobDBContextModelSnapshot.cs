@@ -17,89 +17,66 @@ namespace TriPowersLLC.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.5")
+                .HasAnnotation("ProductVersion", "7.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
-
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("TriPowersLLC.Models.Applicants", b =>
                 {
                     b.Property<int>("id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+                    b.Property<DateTime>("AppliedAt");
 
-                    b.Property<DateTime>("AppliedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("JobId")
-                        .HasColumnType("int");
+                    b.Property<int>("JobId");
 
                     b.Property<string>("ResumeText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("city")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("country")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("firstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("lastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("password")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("phone")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("state")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("streetAddress")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("zipCode")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(10)");
+                        .IsRequired();
 
                     // JobsApi application fields
                     b.Property<string>("ResumeUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("CoverLetter")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("LinkedInProfile")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("PortfolioUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("id");
 
@@ -111,81 +88,58 @@ namespace TriPowersLLC.Migrations
             modelBuilder.Entity("TriPowersLLC.Models.Job", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .ValueGeneratedOnAdd();
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Benefits")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("Benefits");
 
                     b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("EmploymentType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<DateTime>("PostedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("PostedAt");
 
                     b.Property<string>("Requirements")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Responsibilities")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<int>("SalaryRangeMax")
-                        .HasColumnType("int");
+                    b.Property<int>("SalaryRangeMax");
 
-                    b.Property<int>("SalaryRangeMin")
-                        .HasColumnType("int");
+                    b.Property<int>("SalaryRangeMin");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     // JobsApi fields
                     b.Property<string>("Company")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.Property<string>("SalaryRange")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                    b.Property<bool>("IsActive");
 
-                    b.Property<DateTime>("ClosingDate")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("ClosingDate");
 
-                    b.Property<int>("Views")
-                        .HasColumnType("int");
+                    b.Property<int>("Views");
 
-                    b.Property<int>("ApplicantsCount")
-                        .HasColumnType("int");
+                    b.Property<int>("ApplicantsCount");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("CreatedAt");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("UpdatedAt");
 
                     b.Property<string>("VendorName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 
@@ -195,22 +149,16 @@ namespace TriPowersLLC.Migrations
             modelBuilder.Entity("TriPowersLLC.Models.User", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .ValueGeneratedOnAdd();
 
                     b.Property<byte[]>("PasswordHash")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .IsRequired();
 
                     b.Property<byte[]>("PasswordSalt")
-                        .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .IsRequired();
 
                     b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired();
 
                     b.HasKey("Id");
 

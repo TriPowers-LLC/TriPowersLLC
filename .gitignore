@@ -138,3 +138,4 @@ functions.zip
 .env*.local
 .vs/TriPowersLLC/CopilotIndices/17.14.827.52834/CodeChunks.db
 .vs/TriPowersLLC/CopilotIndices/17.14.827.52834/CodeChunks.db
+jobs_react/.env.production
