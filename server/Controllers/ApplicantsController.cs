@@ -44,6 +44,18 @@ namespace TriPowersLLC.Controllers
             _context.Applicants.Add(applicants);
             await _context.SaveChangesAsync();
 
+            // Update job applicants count (best-effort)
+            try
+            {
+                var job = await _context.Jobs.FindAsync(applicants.JobId);
+                if (job != null)
+                {
+                    job.ApplicantsCount += 1;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch { /* don't block on count update */ }
+
             return CreatedAtAction("GetApplicants", new { id = applicants.id }, applicants);
         }
 
@@ -73,6 +85,18 @@ namespace TriPowersLLC.Controllers
 
             _context.Entry(existing).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+
+            // decrement job applicants count (best-effort)
+            try
+            {
+                var job = await _context.Jobs.FindAsync(applicants.JobId);
+                if (job != null && job.ApplicantsCount > 0)
+                {
+                    job.ApplicantsCount -= 1;
+                    await _context.SaveChangesAsync();
+                }
+            }
+            catch { /* swallow */ }
 
             return NoContent();
         }

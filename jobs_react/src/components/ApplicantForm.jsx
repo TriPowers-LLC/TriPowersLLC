@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import apiClient from '../lib/apiClient';
 
-export default function ApplicantForm({ jobId }) {
+export default function ApplicantForm({ jobId, onSubmitted }) {
   const [form, setForm] = useState({ name: '', email: '', resume: '' });
   const [status, setStatus] = useState('');
 
@@ -11,6 +11,7 @@ export default function ApplicantForm({ jobId }) {
     try {
       await apiClient.post(`jobs/${jobId}/apply`, form);
       setStatus('Application submitted! 🎉');
+      onSubmitted?.();
     } catch (err) {
       console.error(err);
       setStatus('Error submitting application.');
@@ -45,4 +46,3 @@ export default function ApplicantForm({ jobId }) {
     </form>
   );
 }
-

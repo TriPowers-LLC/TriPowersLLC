@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Home from './components/Home';
@@ -28,7 +28,7 @@ const PublicLayout = () => (
   </>
 );
 
- const AdminLayout = () => (
+const AdminLayout = () => (
   <>
     <NavBar userRole="admin" />
     <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
@@ -38,9 +38,8 @@ const PublicLayout = () => (
 );
 
 const App = () => {
-
   return (
-   <Router>
+    <Router>
       <Routes>
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
@@ -75,4 +74,5 @@ const App = () => {
     </Router>
   );
 };
-          export default App;
+
+export default App;
