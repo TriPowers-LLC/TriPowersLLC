@@ -7,6 +7,7 @@ namespace TriPowersLLC.Controllers;
 
 [ApiController]
 [Route("api/public/jobs")]
+[Route("api/jobs")]
 [AllowAnonymous]
 public class PublicJobsController : ControllerBase
 {
@@ -16,6 +17,11 @@ public class PublicJobsController : ControllerBase
     {
         _db = db;
     }
+
+    // Named route constant for external references (keeps callers stable)
+    public const string GetJobRouteName = nameof(GetJob);
+
+
 
     // GET: /api/public/jobs
     [HttpGet]
