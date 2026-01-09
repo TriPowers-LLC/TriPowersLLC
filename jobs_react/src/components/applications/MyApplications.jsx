@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMyApplications } from "../../slices/applicationsSlice";
@@ -44,3 +45,15 @@ const MyApplications = () => {
 };
 
 export default MyApplications;
+=======
+const MyApplications = () => {
+  return (
+    <div className="space-y-3">
+      <h1 className="text-2xl font-semibold">My Applications</h1>
+      <p>Application history will appear here.</p>
+    </div>
+  );
+};
+
+export default MyApplications;
+>>>>>>> codex/add-admin-route-and-views

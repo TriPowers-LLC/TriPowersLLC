@@ -13,7 +13,16 @@ namespace TriPowersLLC.Controllers
     public class JobsController : ControllerBase
     {private readonly JobDBContext _db;
 
-        public JobsController(JobDBContext db)
+        // Example: IConfiguration _config, then use _config["OpenAI:ApiKey"]
+        // Remove or adjust the following line as needed:
+        // var key = builder.Configuration["OpenAI:ApiKey"];
+        // Console.WriteLine($"[DEBUG] Using OpenAI key prefix: {key?.Substring(0, 4)}…");
+    }
+
+
+    // GET /api/jobs
+    [HttpGet]
+ 
         {
             _db = db;
         }

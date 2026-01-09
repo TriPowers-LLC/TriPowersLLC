@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
@@ -6,7 +7,8 @@ import Home from './components/Home';
 import Services from './components/Services';
 import Contact from './components/Contact';
 import About from './components/About';
-import Portfolio from './components/Portfolio';
+import Portfolio from './components/Portfolio'
+import Careers from './components/Careers';
 import Admin from './modules/admin/Admin';
 import Login from './components/Login';
 import JobList from './components/public/JobList';
@@ -38,7 +40,6 @@ const PublicLayout = () => (
 );
 
 const App = () => {
-
   return (
     <Router>
       <Routes>
