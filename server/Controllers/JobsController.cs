@@ -50,7 +50,8 @@ namespace TriPowersLLC.Controllers
             _db.Jobs.Add(job);
             await _db.SaveChangesAsync();
             var response = JobResponse.FromEntity(job);
-            return CreatedAtRoute(PublicJobsController.GetJobRouteName, new { id = job.Id }, response);
+            // Use CreatedAtAction to avoid relying on a named route that differs across route prefixes
+            return CreatedAtAction(nameof(PublicJobsController.GetJob), "PublicJobs", new { id = job.Id }, response);
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequest request)

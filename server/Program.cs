@@ -23,8 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 0. JWT Authentication
 var jwtKey =
-    builder.Configuration["Jwt:Key"]
-    ?? builder.Configuration["Jwt__Key"];
+    builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
     throw new InvalidOperationException("Missing Jwt:Key in configuration");
@@ -44,15 +43,20 @@ builder.Services
     });
 
 // 1. EF Core
-var   connectionString =
+var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? builder.Configuration.GetConnectionString("DEFAULT")
-    ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
+    ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
 
 builder.Services.AddDbContext<JobDBContext>(opts =>
     opts.UseNpgsql(connectionString));
+<<<<<<< HEAD
+=======
+
+>>>>>>> 0c65dfe15558630c415c8d9dd4cd911334947142
 
 // 2. Named OpenAI HttpClient
 

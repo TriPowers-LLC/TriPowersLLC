@@ -1,0 +1,21 @@
+# Ignore repo root noise and heavy folders
+.git
+.vs
+.vscode
+node_modules
+**/node_modules
+npm-debug.log
+yarn.lock
+dist
+build
+**/bin
+**/obj
+**/*.zip
+**/*.tar.gz
+**/*.log
+jobs_react
+Functions
+.aws
+.env.development.local
+.env.local
+*.user

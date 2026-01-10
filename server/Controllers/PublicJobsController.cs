@@ -8,10 +8,14 @@ namespace TriPowersLLC.Controllers;
 
 [ApiController]
 [Route("api/public/jobs")]
+<<<<<<< HEAD
 =======
 [ApiController]
 [Route("/jobs")]
 >>>>>>> codex/add-admin-route-and-views
+=======
+[Route("api/jobs")]
+>>>>>>> 0c65dfe15558630c415c8d9dd4cd911334947142
 [AllowAnonymous]
 public class PublicJobsController : ControllerBase
 {
@@ -26,6 +30,14 @@ public class PublicJobsController : ControllerBase
     }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+    // Named route constant for external references (keeps callers stable)
+    public const string GetJobRouteName = nameof(GetJob);
+
+
+
+>>>>>>> 0c65dfe15558630c415c8d9dd4cd911334947142
     // GET: /api/public/jobs
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Job>>> GetJobs()
