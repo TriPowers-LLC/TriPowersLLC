@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 COPY . .
@@ -29,7 +28,6 @@ WORKDIR /src/server
 RUN dotnet publish -c Release -o /app/publish
 
 # Runtime stage
->>>>>>> 0c65dfe15558630c415c8d9dd4cd911334947142
 FROM mcr.microsoft.com/dotnet/aspnet:9.0
 WORKDIR /app
 COPY --from=build /app/publish .
