@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using TriPowersLLC.Contracts;
 using TriPowersLLC.Models;
 
-
 namespace TriPowersLLC.Controllers
 {
     [ApiController]
@@ -13,7 +12,56 @@ namespace TriPowersLLC.Controllers
     public class JobsController : ControllerBase
     {private readonly JobDBContext _db;
 
+<<<<<<< HEAD
         public JobsController(JobDBContext db)
+=======
+        // If you have access to configuration, inject it and use here
+        // Example: IConfiguration _config, then use _config["OpenAI:ApiKey"]
+        // Remove or adjust the following line as needed:
+        // var key = builder.Configuration["OpenAI:ApiKey"];
+        // Console.WriteLine($"[DEBUG] Using OpenAI key prefix: {key?.Substring(0, 4)}…");
+    }
+
+
+    // GET /api/jobs
+    [HttpGet]
+    public async Task<IEnumerable<Job>> GetAll() =>
+        await _db.Jobs.OrderByDescending(j => j.PostedAt).ToListAsync();
+
+    // GET /api/jobs/{id}
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Job>> GetById(int id)
+    {
+        var job = await _db.Jobs.FindAsync(id);
+        return job == null ? NotFound() : job;
+    }
+
+    // POST /api/jobs
+    [HttpPost]
+    public async Task<ActionResult<Job>> Create(Job job)
+    {
+        // Initialize merged fields (from JobsApi)
+        job.CreatedAt = DateTime.UtcNow;
+        job.IsActive = job.IsActive; // keep client value if provided; defaults are set on model
+        job.Views = 0;
+        job.ApplicantsCount = 0;
+
+        _db.Jobs.Add(job);
+        await _db.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetById), new { id = job.Id }, job);
+    }
+
+    // PUT /api/jobs/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, Job job)
+    {
+        if (id != job.Id) return BadRequest();
+
+        job.UpdatedAt = DateTime.UtcNow;
+
+        _db.Entry(job).State = EntityState.Modified;
+        try
+>>>>>>> codex/add-admin-route-and-views
         {
             _db = db;
         }
