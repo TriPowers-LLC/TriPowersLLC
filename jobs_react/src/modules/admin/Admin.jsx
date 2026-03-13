@@ -1,17 +1,20 @@
-// src/components/Admin.jsx
+// src/components/modules/Admin.jsx
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import ApplicantsTable from './admin/ApplicantsTable';
-import JobEditor from './admin/JobEditor';
-import JobsTable from './admin/JobsTable';
+
+import ApplicantsTable from "../../components/admin/ApplicantsTable";
+import JobEditor from "../../components/admin/JobEditor";
+import JobsTable from "../../components/admin/JobsTable";
+import JobGenerator from "../../components/JobGenerator";
+
 import {
   createJobThunk,
   deleteJobThunk,
   fetchJobs,
   updateJobThunk,
-} from '../slices/jobsSlice';
-import JobGenerator from './JobGenerator';
-import { fetchApplicants } from '../slices/applicantsSlice';
+} from '../../slices/jobsSlice';
+
+import { fetchApplicants } from "../../slices/applicantsSlice";
 
 const Admin = () => {
   const dispatch = useDispatch();
