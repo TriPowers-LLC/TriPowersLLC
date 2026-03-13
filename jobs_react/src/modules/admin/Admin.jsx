@@ -1,5 +1,7 @@
 // src/components/Admin.jsx
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import JobGenerator from '../../components/JobGenerator';
+import apiClient from '../../lib/apiClient';
 import { useDispatch, useSelector } from 'react-redux';
 import ApplicantsTable from './admin/ApplicantsTable';
 import JobEditor from './admin/JobEditor';
@@ -10,7 +12,6 @@ import {
   fetchJobs,
   updateJobThunk,
 } from '../slices/jobsSlice';
-import JobGenerator from './JobGenerator';
 import { fetchApplicants } from '../slices/applicantsSlice';
 
 const Admin = () => {
@@ -63,3 +64,4 @@ const Admin = () => {
 };
 
 export default Admin;
+
