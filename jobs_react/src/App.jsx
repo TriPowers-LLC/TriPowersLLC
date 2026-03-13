@@ -8,7 +8,6 @@ import Services from './components/Services';
 import Contact from './components/Contact';
 import About from './components/About';
 import Portfolio from './components/Portfolio'
-import Careers from './components/Careers';
 import Admin from './modules/admin/Admin';
 import Login from './components/Login';
 import Careers from "./components/Careers";

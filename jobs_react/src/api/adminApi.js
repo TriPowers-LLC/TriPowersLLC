@@ -11,3 +11,4 @@ export const updateJob = (id, payload) => api.put(`jobs/${id}`, payload);
 
 export const deleteJob = (id) => api.delete(`jobs/${id}`);
 
+export const getJobById = (id) => api.get(`jobs/${id}`);
