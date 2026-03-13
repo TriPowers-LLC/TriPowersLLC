@@ -1,11 +1,7 @@
-<<<<<<< HEAD
 // src/components/Admin.jsx
-<<<<<<<< HEAD:jobs_react/src/modules/admin/Admin.jsx
 import { useState, useEffect } from 'react';
 import JobGenerator from '../../components/JobGenerator';
 import apiClient from '../../lib/apiClient';
-========
-import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ApplicantsTable from './admin/ApplicantsTable';
 import JobEditor from './admin/JobEditor';
@@ -16,9 +12,7 @@ import {
   fetchJobs,
   updateJobThunk,
 } from '../slices/jobsSlice';
-import JobGenerator from './JobGenerator';
 import { fetchApplicants } from '../slices/applicantsSlice';
->>>>>>>> codex/add-admin-route-and-views:jobs_react/src/components/Admin.jsx
 
 const Admin = () => {
   const dispatch = useDispatch();

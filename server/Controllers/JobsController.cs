@@ -13,16 +13,7 @@ namespace TriPowersLLC.Controllers
     public class JobsController : ControllerBase
     {private readonly JobDBContext _db;
 
-        // Example: IConfiguration _config, then use _config["OpenAI:ApiKey"]
-        // Remove or adjust the following line as needed:
-        // var key = builder.Configuration["OpenAI:ApiKey"];
-        // Console.WriteLine($"[DEBUG] Using OpenAI key prefix: {key?.Substring(0, 4)}…");
-    }
-
-
-    // GET /api/jobs
-    [HttpGet]
- 
+        public JobsController(JobDBContext db)
         {
             _db = db;
         }
@@ -50,8 +41,7 @@ namespace TriPowersLLC.Controllers
             _db.Jobs.Add(job);
             await _db.SaveChangesAsync();
             var response = JobResponse.FromEntity(job);
-            // Use CreatedAtAction to avoid relying on a named route that differs across route prefixes
-            return CreatedAtAction(nameof(PublicJobsController.GetJob), "PublicJobs", new { id = job.Id }, response);
+            return CreatedAtRoute(PublicJobsController.GetJobRouteName, new { id = job.Id }, response);
         }
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequest request)
