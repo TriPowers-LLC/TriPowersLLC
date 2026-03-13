@@ -90,48 +90,67 @@ const STAFFING = [
 
 const Services = () => {
   useGSAP(() => {
-    gsap.from(".services-heading", {
-      opacity: 0,
-      y: 20,
+  gsap.set(".services-heading, .cap-card, .info-card", {
+    clearProps: "opacity,transform",
+  });
+
+  gsap.fromTo(
+    ".services-heading",
+    { autoAlpha: 0, y: 20 },
+    {
+      autoAlpha: 1,
+      y: 0,
       duration: 0.6,
       ease: "power2.out",
       scrollTrigger: {
         trigger: "#services",
         start: "top 85%",
+        once: true,
       },
-    });
+    }
+  );
 
-    gsap.from(".cap-card", {
-      opacity: 0,
-      y: 30,
+  gsap.fromTo(
+    ".cap-card",
+    { autoAlpha: 0, y: 30 },
+    {
+      autoAlpha: 1,
+      y: 0,
       stagger: 0.1,
       duration: 0.6,
       ease: "power2.out",
       scrollTrigger: {
         trigger: ".capabilities-grid",
-        start: "top 80%",
+        start: "top 85%",
+        once: true,
       },
-    });
+    }
+  );
 
-    gsap.from(".info-card", {
-      opacity: 0,
-      y: 25,
+  gsap.fromTo(
+    ".info-card",
+    { autoAlpha: 0, y: 25 },
+    {
+      autoAlpha: 1,
+      y: 0,
       stagger: 0.12,
       duration: 0.6,
       ease: "power2.out",
       scrollTrigger: {
         trigger: ".services-info-grid",
-        start: "top 82%",
+        start: "top 85%",
+        once: true,
       },
-    });
-  }, []);
+    }
+  );
+}, []);
 
   return (
     <section
       id="services"
-      className="relative scroll-mt-16 bg-gradient-to-b from-gray-50 to-gray-100 px-4 py-20"
+      className="relative overflow-x-hidden scroll-mt-16 bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-20 md:px-8"
     >
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto w-full max-w-7xl">
         <div className="services-heading mx-auto mb-14 max-w-3xl text-center">
           <h2 className="mb-4 text-3xl font-bold text-blue-900 md:text-4xl">
             Our Capabilities
@@ -145,11 +164,11 @@ const Services = () => {
           </p>
         </div>
 
-        <div className="capabilities-grid grid gap-8 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="capabilities-grid grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
           {CAPABILITIES.map(({ title, description, icon: Icon }) => (
             <div
               key={title}
-              className="cap-card rounded-2xl bg-white/90 p-6 text-left shadow-lg backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl"
+              className="cap-card h-full rounded-2xl border border-slate-200/70 bg-white p-7 text-left shadow-[0_10px_30px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_18px_45px_rgba(37,99,235,0.12)]"
             >
               <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100">
                 <Icon className="text-blue-700" size={24} />
@@ -165,7 +184,7 @@ const Services = () => {
         </div>
 
         <div className="services-info-grid mt-16 grid gap-8 lg:grid-cols-3">
-          <div className="info-card rounded-2xl bg-white p-6 shadow-lg">
+          <div className="info-card rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
             <div className="mb-4 flex items-center gap-3">
               <Code2 className="text-blue-700" size={24} />
               <h3 className="text-xl font-semibold text-blue-900">
@@ -186,7 +205,7 @@ const Services = () => {
             </ul>
           </div>
 
-          <div className="info-card rounded-2xl bg-white p-6 shadow-lg">
+          <div className="info-card rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
             <div className="mb-4 flex items-center gap-3">
               <Lock className="text-blue-700" size={24} />
               <h3 className="text-xl font-semibold text-blue-900">
@@ -207,7 +226,7 @@ const Services = () => {
             </ul>
           </div>
 
-          <div className="info-card rounded-2xl bg-white p-6 shadow-lg">
+          <div className="info-card rounded-2xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
             <div className="mb-4 flex items-center gap-3">
               <Laptop className="text-blue-700" size={24} />
               <h3 className="text-xl font-semibold text-blue-900">
@@ -229,8 +248,8 @@ const Services = () => {
           </div>
         </div>
 
-        <div className="info-card mt-12 rounded-2xl bg-blue-900 px-6 py-8 text-white shadow-xl">
-          <div className="grid gap-6 md:grid-cols-4">
+        <div className="info-card mt-12 rounded-3xl bg-gradient-to-r from-blue-900 via-blue-800 to-slate-900 px-6 py-8 text-white shadow-[0_18px_50px_rgba(15,23,42,0.28)]">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
             <div className="flex items-start gap-3">
               <Layers3 className="mt-1 shrink-0" size={22} />
               <div>
