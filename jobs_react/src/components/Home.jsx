@@ -95,6 +95,10 @@ export default function Home() {
               SDVOSB | Technology Solutions | Technical Staffing
             </p>
 
+            <p className="hero-content mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-blue-200">
+              TriPowers LLC
+            </p>
+
             <h1 className="hero-content text-4xl font-bold leading-tight text-white md:text-6xl">
               Modern Technology, Cloud Solutions, and Workforce Support for
               Mission-Driven Organizations

@@ -53,10 +53,6 @@ if (string.IsNullOrWhiteSpace(connectionString))
 
 builder.Services.AddDbContext<JobDBContext>(opts =>
     opts.UseNpgsql(connectionString));
-<<<<<<< HEAD
-=======
-
->>>>>>> 0c65dfe15558630c415c8d9dd4cd911334947142
 
 // 2. Named OpenAI HttpClient
 

@@ -41,9 +41,9 @@ const JobList = () => {
   return (
     <section className="space-y-6">
       <header className="text-center space-y-2">
-        <h1 className="text-3xl font-bold text-blue-900">Open Roles</h1>
-        <p className="text-slate-700">
-          Browse our current openings and apply without signing in.
+        <h1 className="text-3xl font-bold text-blue-900">Careers</h1>
+        <p className="text-slate-600 mt-2">
+          Explore current opportunities and apply to join the TriPowers team.
         </p>
       </header>
 

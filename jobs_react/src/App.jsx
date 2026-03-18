@@ -55,12 +55,11 @@ const App = () => {
         </Route>
 
         <Route element={<PublicLayout />}>
-          <Route path="/jobs" element={<JobList />} />
           <Route path="/apply/:id" element={<JobDetail />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/careers" element={<Careers />} />
+          <Route path="/careers" element={<JobList />} />
           <Route path="/login" element={<Login />} />
         </Route>
 
