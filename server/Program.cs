@@ -23,8 +23,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // 0. JWT Authentication
 var jwtKey =
-    builder.Configuration["Jwt:Key"]
-    ?? builder.Configuration["Jwt__Key"];
+    builder.Configuration["Jwt:Key"];
 
 if (string.IsNullOrEmpty(jwtKey))
     throw new InvalidOperationException("Missing Jwt:Key in configuration");
@@ -44,15 +43,16 @@ builder.Services
     });
 
 // 1. EF Core
-var   connectionString =
+var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? builder.Configuration.GetConnectionString("DEFAULT")
-    ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
+    ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
 
 builder.Services.AddDbContext<JobDBContext>(opts =>
-    opts.UseSqlServer(connectionString));
+    opts.UseNpgsql(connectionString));
 
 // 2. Named OpenAI HttpClient
 
@@ -146,7 +146,7 @@ app.MapGet("/__ef", () =>
     var names = new[] {
         "Microsoft.EntityFrameworkCore",
         "Microsoft.EntityFrameworkCore.Relational",
-        "Microsoft.EntityFrameworkCore.SqlServer"
+        "Npgsql.EntityFrameworkCore.PostgreSQL"
     };
     var list = AppDomain.CurrentDomain.GetAssemblies()
         .Where(a => names.Contains(a.GetName().Name))
@@ -170,20 +170,21 @@ app.MapGet("/_assemblies", () =>
     }
 
     var sql = TryGet(() => {
-        var asm = typeof(Microsoft.Data.SqlClient.SqlConnection).Assembly.GetName();
+        var asm = typeof(Npgsql.NpgsqlConnection).Assembly.GetName();
         return (asm.Name!, asm.Version!.ToString());
     });
 
     var ef = TryGet(() => {
-        var asm = typeof(Microsoft.EntityFrameworkCore.SqlServerDbContextOptionsExtensions).Assembly.GetName();
-        return (asm.Name!, asm.Version!.ToString());
+        var asm = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name!.Contains("Npgsql.EntityFrameworkCore.PostgreSQL"));
+        var name = asm.GetName();
+        return (name.Name!, name.Version!.ToString());
     });
 
     var loaded = AppDomain.CurrentDomain
         .GetAssemblies()
         .Select(a => a.GetName())
-        .Where(n => n.Name!.Contains("SqlClient", StringComparison.OrdinalIgnoreCase)
-                 || n.Name!.Contains("EntityFrameworkCore.SqlServer", StringComparison.OrdinalIgnoreCase))
+        .Where(n => n.Name!.Contains("Npgsql", StringComparison.OrdinalIgnoreCase)
+                 || n.Name!.Contains("EntityFrameworkCore.PostgreSQL", StringComparison.OrdinalIgnoreCase))
         .Select(n => new { n.Name, Version = n.Version?.ToString() })
         .ToArray();
 
@@ -198,7 +199,7 @@ app.MapGet("/api/dbcheck", async (IConfiguration cfg) =>
 
     try
     {
-        using var con = new Microsoft.Data.SqlClient.SqlConnection(cs);
+        using var con = new Npgsql.NpgsqlConnection(cs);
         await con.OpenAsync();
         return Results.Ok(new { ok = true, serverVersion = con.ServerVersion });
     }

@@ -1,4 +1,4 @@
-// jobs_react/src/api/client.js
+// jobs_react/src/api/apiClient.js
 import axios from 'axios';
 
 // Get base from env and remove trailing slash to avoid /api/api.

@@ -16,31 +16,24 @@ namespace TriPowersLLC.Controllers
     {
         private readonly JobDBContext _context;
 
-        public ApplicantsController(JobDBContext context)
+         private int? GetUserId()
         {
-            _context = context;
+             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(userId, out var parsed) ? parsed : null;
         }
 
         // GET: api/admin/Applicants
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Applicants>>> GetApplicants()
         {
-            return await _context.Applicants.ToListAsync();
+            _context = context;
         }
 
         // GET: api/admin/Applicants/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Applicants>> GetApplicants(int id)
         {
-            var applicants = await _context.Applicants.FindAsync(id);
-
-            if (applicants == null)
-            {
-                return NotFound();
-            }
-
-            return applicants;
-        }
+            applicants.AppliedAt = DateTime.UtcNow;
 
         // PUT: api/admin/Applicants/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -49,59 +42,88 @@ namespace TriPowersLLC.Controllers
         {
             if (id != applicants.id)
             {
-                return BadRequest();
+                applicants.UserId = userId.Value;
             }
 
-            _context.Entry(applicants).State = EntityState.Modified;
+            _context.Applicants.Add(applicants);
+            await _context.SaveChangesAsync();
 
+            // Update job applicants count (best-effort)
             try
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ApplicantsExists(id))
+                var job = await _context.Jobs.FindAsync(applicants.JobId);
+                if (job != null)
                 {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
+                    job.ApplicantsCount += 1;
+                    await _context.SaveChangesAsync();
                 }
             }
+            catch { /* don't block on count update */ }
 
-            return NoContent();
+            return CreatedAtAction("GetApplicants", new { id = applicants.id }, applicants);
         }
 
         // POST: api/admin/Applicants
         [HttpPost]
         public async Task<ActionResult<Applicants>> PostApplicants(Applicants applicants)
         {
-            _context.Applicants.Add(applicants);
+            
+            var userId = GetUserId();
+            if (userId is null) return Unauthorized();
+
+            var existing = await _context.Applicants.FirstOrDefaultAsync(a => a.id == id && a.UserId == userId);
+            if (existing is null) return Forbid();
+
+            existing.firstName = updated.firstName;
+            existing.lastName = updated.lastName;
+            existing.email = updated.email;
+            existing.phone = updated.phone;
+            existing.streetAddress = updated.streetAddress;
+            existing.city = updated.city;
+            existing.state = updated.state;
+            existing.country = updated.country;
+            existing.zipCode = updated.zipCode;
+            existing.ResumeText = updated.ResumeText;
+
+            _context.Entry(existing).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetApplicants", new { id = applicants.id }, applicants);
+            return NoContent();
         }
 
         // DELETE: api/admin/Applicants/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteApplicants(int id)
         {
-            var applicants = await _context.Applicants.FindAsync(id);
-            if (applicants == null)
-            {
-                return NotFound();
-            }
+            var userId = GetUserId();
+            if (userId is null) return Unauthorized();
 
-            _context.Applicants.Remove(applicants);
-            await _context.SaveChangesAsync();
+            var myApplications = await _context.Applicants
+                .Include(a => a.Job)
+                .Where(a => a.UserId == userId.Value)
+                .OrderByDescending(a => a.AppliedAt)
+                .ToListAsync();
 
-            return NoContent();
+            return Ok(myApplications);
         }
 
-        private bool ApplicantsExists(int id)
+        // GET: api/Applicants/5
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<ActionResult<Applicants>> GetApplicants(int id)
         {
-            return _context.Applicants.Any(e => e.id == id);
+            var userId = GetUserId();
+            if (userId is null) return Unauthorized();
+
+            var applicants = await _context.Applicants
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.id == id && a.UserId == userId);
+
+            if (applicants == null) return Forbid();
+
+            return applicants;
         }
+
+        private bool ApplicantsExists(int id) => _context.Applicants.Any(e => e.id == id);
     }
 }
