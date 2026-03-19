@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Home from './components/Home';
@@ -5,11 +6,10 @@ import Services from './components/Services';
 import Contact from './components/Contact';
 import About from './components/About';
 import Portfolio from './components/Portfolio';
-import Careers from './components/Careers';
-import Admin from './modules/admin/Admin';
+import Admin from './components/Admin';
 import Login from './components/Login';
-import JobList from './modules/public/JobList';
-import JobDetail from './modules/public/JobDetail';
+import JobList from './components/public/JobList';
+import JobDetail from './components/public/JobDetail';
 import MyApplications from './components/applications/MyApplications';
 
 function RequireAuth({ children }) {
@@ -22,15 +22,6 @@ const PublicLayout = () => (
   <>
     <NavBar />
     <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
-      <Outlet />
-    </main>
-  </>
-);
-
-const WideLayout = () => (
-  <>
-    <NavBar />
-    <main className="pt-20">
       <Outlet />
     </main>
   </>

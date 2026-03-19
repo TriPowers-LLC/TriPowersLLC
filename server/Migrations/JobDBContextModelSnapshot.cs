@@ -27,7 +27,11 @@ namespace TriPowersLLC.Migrations
 
                     b.Property<DateTime>("AppliedAt");
 
-                    b.Property<int>("JobId");
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ResumeText")
                         .IsRequired();
@@ -48,7 +52,7 @@ namespace TriPowersLLC.Migrations
                         .IsRequired();
 
                     b.Property<string>("password")
-                        .IsRequired();
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("phone")
                         .IsRequired();
@@ -81,6 +85,8 @@ namespace TriPowersLLC.Migrations
                     b.HasKey("id");
 
                     b.HasIndex("JobId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Applicants");
                 });
@@ -173,7 +179,13 @@ namespace TriPowersLLC.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("TriPowersLLC.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Job");
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

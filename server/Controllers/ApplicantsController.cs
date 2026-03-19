@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using TriPowersLLC.Models;
 
 namespace TriPowersLLC.Controllers
@@ -12,75 +14,60 @@ namespace TriPowersLLC.Controllers
     {
         private readonly JobDBContext _db;
 
-        public ApplicantsController(JobDBContext db)
+        private int? GetUserId()
         {
-            _db = db;
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(userId, out var parsed) ? parsed : null;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Applicants>>> GetAll()
+        public ApplicantsController(JobDBContext context)
         {
-            var applicants = await _db.Applicants
-                .Include(a => a.Job)
-                .OrderByDescending(a => a.AppliedAt)
-                .ToListAsync();
-
-            return Ok(applicants);
+            _context = context;
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Applicants>> GetById(int id)
-        {
-            var applicant = await _db.Applicants
-                .Include(a => a.Job)
-                .FirstOrDefaultAsync(a => a.id == id);
-
-            return applicant is null ? NotFound() : Ok(applicant);
-        }
-
+        // POST: api/Applicants
         [HttpPost]
-        public async Task<ActionResult<Applicants>> Create([FromBody] Applicants applicant)
+        public async Task<ActionResult<Applicants>> PostApplicants(Applicants applicants)
         {
-            var job = await _db.Jobs.FindAsync(applicant.JobId);
-            if (job is null)
+            applicants.AppliedAt = DateTime.UtcNow;
+
+            // If the caller is authenticated, attach their user id to the application
+            var userId = GetUserId();
+            if (userId.HasValue)
             {
-                return BadRequest(new { error = $"Job {applicant.JobId} does not exist." });
+                applicants.UserId = userId.Value;
             }
 
-            applicant.AppliedAt = DateTime.UtcNow;
+            _context.Applicants.Add(applicants);
+            await _context.SaveChangesAsync();
 
-            _db.Applicants.Add(applicant);
-            job.ApplicantsCount += 1;
-            await _db.SaveChangesAsync();
-
-            await _db.Entry(applicant)
-                .Reference(a => a.Job)
-                .LoadAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = applicant.id }, applicant);
+            return CreatedAtAction("GetApplicants", new { id = applicants.id }, applicants);
         }
 
+        // PUT: api/Applicants/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Applicants applicant)
+        [Authorize]
+        public async Task<IActionResult> PutApplicants(int id, Applicants updated)
         {
-            if (id != applicant.id)
-            {
-                return BadRequest(new { error = "Route id must match applicant id." });
-            }
+            var userId = GetUserId();
+            if (userId is null) return Unauthorized();
 
-            var existingApplicant = await _db.Applicants
-                .FirstOrDefaultAsync(a => a.id == id);
+            var existing = await _context.Applicants.FirstOrDefaultAsync(a => a.id == id && a.UserId == userId);
+            if (existing is null) return Forbid();
 
-            if (existingApplicant is null)
-            {
-                return NotFound();
-            }
+            existing.firstName = updated.firstName;
+            existing.lastName = updated.lastName;
+            existing.email = updated.email;
+            existing.phone = updated.phone;
+            existing.streetAddress = updated.streetAddress;
+            existing.city = updated.city;
+            existing.state = updated.state;
+            existing.country = updated.country;
+            existing.zipCode = updated.zipCode;
+            existing.ResumeText = updated.ResumeText;
 
-            var job = await _db.Jobs.FindAsync(applicant.JobId);
-            if (job is null)
-            {
-                return BadRequest(new { error = $"Job {applicant.JobId} does not exist." });
-            }
+            _context.Entry(existing).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
 
             existingApplicant.firstName = applicant.firstName;
             existingApplicant.lastName = applicant.lastName;
@@ -106,26 +93,40 @@ namespace TriPowersLLC.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        // GET: api/Applicants/me
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<Applicants>>> GetMyApplicants()
         {
-            var applicant = await _db.Applicants.FindAsync(id);
-            if (applicant is null)
-            {
-                return NotFound();
-            }
+            var userId = GetUserId();
+            if (userId is null) return Unauthorized();
 
-            var job = await _db.Jobs.FindAsync(applicant.JobId);
+            var myApplications = await _context.Applicants
+                .Include(a => a.Job)
+                .Where(a => a.UserId == userId.Value)
+                .OrderByDescending(a => a.AppliedAt)
+                .ToListAsync();
 
-            _db.Applicants.Remove(applicant);
-
-            if (job is not null && job.ApplicantsCount > 0)
-            {
-                job.ApplicantsCount -= 1;
-            }
-
-            await _db.SaveChangesAsync();
-            return NoContent();
+            return Ok(myApplications);
         }
+
+        // GET: api/Applicants/5
+        [HttpGet("{id}")]
+        [Authorize]
+        public async Task<ActionResult<Applicants>> GetApplicants(int id)
+        {
+            var userId = GetUserId();
+            if (userId is null) return Unauthorized();
+
+            var applicants = await _context.Applicants
+                .Include(a => a.Job)
+                .FirstOrDefaultAsync(a => a.id == id && a.UserId == userId);
+
+            if (applicants == null) return Forbid();
+
+            return applicants;
+        }
+
+        private bool ApplicantsExists(int id) => _context.Applicants.Any(e => e.id == id);
     }
 }

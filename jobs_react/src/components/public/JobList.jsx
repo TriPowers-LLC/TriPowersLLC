@@ -1,55 +1,70 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import jobsApi from '../../api/jobsApiClient';
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link } from "react-router-dom";
+import { fetchJobs } from "../../slices/jobsSlice";
+
+const JobCard = ({ job }) => {
+  const posted = job.postedAt || job.createdAt || job.postedDate;
+  return (
+    <div className="border rounded-lg shadow-sm p-4 flex flex-col gap-2 bg-white">
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-semibold text-blue-900">{job.title}</h3>
+        <span className="text-sm text-slate-600">{job.employmentType}</span>
+      </div>
+      <p className="text-sm text-slate-600">
+        {job.location} • Posted {posted ? new Date(posted).toLocaleDateString() : "Recently"}
+      </p>
+      <p className="text-slate-700 line-clamp-3">{job.description}</p>
+      <div className="flex justify-between items-center mt-auto pt-2">
+        <span className="text-sm text-slate-600">
+          Vendor: {job.vendorName}
+        </span>
+        <Link
+          to={`/apply/${job.id}`}
+          className="text-blue-700 font-semibold hover:underline"
+        >
+          View & Apply →
+        </Link>
+      </div>
+    </div>
+  );
+};
 
 const JobList = () => {
-  const [jobs, setJobs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const dispatch = useDispatch();
+  const { items, status, error } = useSelector((state) => state.jobs);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const res = await jobsApi.get('jobs');
-        setJobs(res.data || []);
-      } catch (e) {
-        setError(e.message || 'Failed to load jobs');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  if (loading) return <p>Loading jobs...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+    dispatch(fetchJobs());
+  }, [dispatch]);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-semibold">Open Roles</h1>
-      {jobs.length === 0 ? (
-        <p>No open positions at the moment.</p>
-      ) : (
-        <ul className="space-y-3">
-          {jobs.map((job) => (
-            <li key={job.id} className="border p-4 rounded">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-medium">{job.title}</h2>
-                  <p className="text-sm text-gray-600">{job.location || 'Remote'}</p>
-                </div>
-                <Link className="text-blue-600 underline" to={`/apply/${job.id}`}>
-                  View & Apply
-                </Link>
-              </div>
-              <p className="mt-2 text-gray-700 line-clamp-2">{job.description}</p>
-            </li>
-          ))}
-        </ul>
+    <section className="space-y-6">
+      <header className="text-center space-y-2">
+        <h1 className="text-3xl font-bold text-blue-900">Open Roles</h1>
+        <p className="text-slate-700">
+          Browse our current openings and apply without signing in.
+        </p>
+      </header>
+
+      {status === "loading" && (
+        <p className="text-center text-slate-600">Loading jobs…</p>
       )}
-    </div>
+      {status === "failed" && (
+        <p className="text-center text-red-600">{error}</p>
+      )}
+      {status === "succeeded" && items.length === 0 && (
+        <p className="text-center text-slate-600">No open positions right now.</p>
+      )}
+
+      {items.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {items.map((job) => (
+            <JobCard key={job.id} job={job} />
+          ))}
+        </div>
+      )}
+    </section>
   );
 };
 

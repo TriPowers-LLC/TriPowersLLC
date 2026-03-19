@@ -1,41 +1,43 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using TriPowersLLC.Contracts;
 using TriPowersLLC.Models;
 
-namespace TriPowersLLC.Controllers
+namespace TriPowersLLC.Controllers;
+
+[ApiController]
+[Route("api/public/jobs")]
+[AllowAnonymous]
+public class PublicJobsController : ControllerBase
 {
-    [ApiController]
-    [Route("api/jobs")]
-    public class PublicJobsController : ControllerBase
+    private readonly JobDBContext _db;
+
+    public PublicJobsController(JobDBContext db)
     {
-        internal const string GetJobRouteName = "GetPublicJobById";
+        _db = db;
+    }
 
-        private readonly JobDBContext _db;
+    // GET: /api/public/jobs
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Job>>> GetJobs()
+    {
+        var jobs = await _db.Jobs
+            .OrderByDescending(j => j.PostedAt)
+            .ToListAsync();
 
-        public PublicJobsController(JobDBContext db)
+        return Ok(jobs);
+    }
+
+    // GET: /api/public/jobs/{id}
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<Job>> GetJob(int id)
+    {
+        var job = await _db.Jobs.FindAsync(id);
+        if (job == null)
         {
-            _db = db;
+            return NotFound();
         }
 
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IEnumerable<JobResponse>> GetAll()
-        {
-            var jobs = await _db.Jobs
-                .OrderByDescending(j => j.PostedAt)
-                .ToListAsync();
-
-            return jobs.Select(JobResponse.FromEntity);
-        }
-
-        [HttpGet("{id}", Name = GetJobRouteName)]
-        [AllowAnonymous]
-        public async Task<ActionResult<JobResponse>> GetById(int id)
-        {
-            var job = await _db.Jobs.FindAsync(id);
-            return job is null ? NotFound() : JobResponse.FromEntity(job);
-        }
+        return Ok(job);
     }
 }
