@@ -1,11 +1,15 @@
-import { configureStore } from '@reduxjs/toolkit'
-import applicantSlice from "../slices/applicantSlice";
+import { configureStore } from '@reduxjs/toolkit';
+import applicantSlice from "../slices/applicantSlice.js";
+import jobsSlice from "../slices/jobsSlice.js";
+import applicationsSlice from "../slices/applicationsSlice.js";
 
 export const store = configureStore({
   reducer: {
     applicants: applicantSlice.reducer,
+    jobs: jobsSlice.reducer,
+    applications: applicationsSlice.reducer,
   },
-})
+});
 
 export const ACTION_TYPES = {
   FETCH_APPLICANTS_START: "FETCH_APPLICANTS_START",
@@ -24,4 +28,4 @@ export const fetchAll = () => {
       dispatch(applicantSlice.actions.fetchApplicantsFailure(error.message));
     }
   };
-}
+};

@@ -1,6 +1,6 @@
 import React, {useEffect} from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { fetchAll } from "../actions/store";
+import { fetchAll } from "../actions/store.js";
 import NavBar from "./NavBar";
 import { auth } from "../api";
 
