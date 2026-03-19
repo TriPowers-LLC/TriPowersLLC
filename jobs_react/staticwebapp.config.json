@@ -2,7 +2,7 @@
   "routes": [
     {
       "route": "/api/*",
-      "rewrite": "https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net/api/*"
+      "rewrite": "https://tripowersllc-api-gwc9crgrfpcxaqee.centralus-01.azurewebsites.net*"
     }
   ],
   "navigationFallback": {

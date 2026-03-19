@@ -68,9 +68,12 @@ web_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
+# dotenv environment variables files
 .env
 .env.test
+.env.production
+.env.*
+!.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -117,7 +120,22 @@ dist
 obj/
 bin/
 .vs/TriPowersLLC/v17/.suo
-.vs/TriPowersLLC/v17/.suo
 .vs/TriPowersLLC/v17/DocumentLayout.json
 .vs/TriPowersLLC/v17/.suo
 .vs/TriPowersLLC/v17/.suo
+.vs*
+.vs/CopilotitIndicies
+
+azure-static-web-apps-*
+server/publish/
+server/publish.zip
+functions/send-email-function.zip
+functions.zip
+/publish
+
+*.zip
+.vercel
+.env*.local
+.vs/TriPowersLLC/CopilotIndices/17.14.827.52834/CodeChunks.db
+.vs/TriPowersLLC/CopilotIndices/17.14.827.52834/CodeChunks.db
+jobs_react/.env.production

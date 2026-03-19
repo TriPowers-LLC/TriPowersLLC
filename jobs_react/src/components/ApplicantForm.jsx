@@ -1,16 +1,17 @@
 // src/components/ApplicantForm.jsx
 import { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 
-export default function ApplicantForm({ jobId }) {
+export default function ApplicantForm({ jobId, onSubmitted }) {
   const [form, setForm] = useState({ name: '', email: '', resume: '' });
   const [status, setStatus] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`/api/jobs/${jobId}/apply`, form);
+      await apiClient.post(`jobs/${jobId}/apply`, form);
       setStatus('Application submitted! 🎉');
+      onSubmitted?.();
     } catch (err) {
       console.error(err);
       setStatus('Error submitting application.');
@@ -45,4 +46,3 @@ export default function ApplicantForm({ jobId }) {
     </form>
   );
 }
-

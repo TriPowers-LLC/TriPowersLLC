@@ -1,10 +1,103 @@
 import { useState } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
+
+function ensureStringArray(value) {
+  if (Array.isArray(value)) {
+    return value.map(item => (typeof item === 'string' ? item.trim() : '')).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(/\r?\n|;|\.|\u2022|\-/)
+      .map(part => part.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
+function parseSalaryRange(rangeText) {
+  if (!rangeText || typeof rangeText !== 'string') {
+    return { min: null, max: null };
+  }
+
+  const normalized = rangeText.replace(/to/gi, '-');
+  const matches = normalized.match(/\$?\d[\d,]*(?:\.\d+)?\s*[kKmMbB]?/g);
+
+  if (!matches) {
+    return { min: null, max: null };
+  }
+
+  const values = matches
+    .map(token => {
+      const magnitude = token.match(/[kKmMbB]/);
+      let multiplier = 1;
+      if (magnitude) {
+        switch (magnitude[0].toLowerCase()) {
+          case 'k':
+            multiplier = 1_000;
+            break;
+          case 'm':
+            multiplier = 1_000_000;
+            break;
+          case 'b':
+            multiplier = 1_000_000_000;
+            break;
+          default:
+            multiplier = 1;
+        }
+      }
+
+      const numericPortion = token.replace(/[^0-9.]/g, '');
+      const baseNumber = Number.parseFloat(numericPortion);
+
+      if (Number.isNaN(baseNumber)) {
+        return null;
+      }
+
+      return Math.round(baseNumber * multiplier);
+    })
+    .filter(value => typeof value === 'number' && !Number.isNaN(value));
+
+  if (!values.length) {
+    return { min: null, max: null };
+  }
+
+  const [first, second] = values;
+  const min = first;
+  const max = second ?? first;
+
+  return { min, max };
+}
+
+function coerceNumericValue(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.round(value);
+  }
+
+  if (typeof value === 'string') {
+    const cleaned = value.replace(/[^0-9.]/g, '');
+    if (!cleaned) {
+      return null;
+    }
+
+    const parsed = Number.parseFloat(cleaned);
+    if (Number.isNaN(parsed)) {
+      return null;
+    }
+
+    return Math.round(parsed);
+  }
+
+  return null;
+}
 
 export default function JobGenerator({ onNewJob }) {
   const [title, setTitle]               = useState('');
   const [location, setLocation]         = useState('');
   const [prompt, setPrompt]             = useState('');
+  const [vendorName, setVendorName]     = useState('TriPowers LLC');
+  const [employmentType, setEmploymentType] = useState('Full-Time');
   const [jobDraft, setJobDraft]         = useState(null);
   const [error, setError]               = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -14,63 +107,36 @@ export default function JobGenerator({ onNewJob }) {
     setJobDraft(null);
     setIsGenerating(true);
 
-    // We give the AI a prompt that references the user’s title & location
-    const systemMsg = 'You are an assistant that outputs valid JSON only.';
-    const userMsg   = `
-Generate the following fields for a job:
-- description (string)
-- responsibilities (array of strings)
-- requirements (array of strings)
-- salaryRange (string)
-
-The role is "${title}" located in "${location}".  
-Keep tone professional and concise.  
-Return ONLY JSON.
-`;
 
     try {
       // Build a single prompt string combining title, location, and any extra context
       const fullPrompt = `
-          Role: ${title}
-          Location: ${location}
-          Context: ${prompt}
+      Role: ${title}
+      Location: ${location}
+      Context: ${prompt || 'No additional context provided.'}
+      Generate JSON with description, responsibilities, requirements, employmentType, vendorName, salaryRange.
 
-          Generate JSON with description, responsibilities, requirements, salaryRange.
-          `;
+          Requirements:
+          - Output strictly valid JSON.
+          - salaryRange must clearly indicate the minimum and maximum values.
+      `;   
+      const aiRes = await apiClient.post('jobdescription', {
+        prompt: fullPrompt
+      });
 
-                const aiRes = await axios.post(
-                  '/api/jobdescription',
-                  { prompt: fullPrompt }
-                );
-
-      // Parse the AI’s JSON
-      // 1) get the raw blob
-      let jsonText = aiRes.data.description?.trim() || '';
-      if (!jsonText) {
-        setError('No description returned from AI.');
+      if (aiRes.status !== 200) {
+        setError('Failed to generate job description.');
         return;
       }
-
-      // 2) strip code fences if present
-      if (jsonText.startsWith('```')) {
-        // split lines and drop the first and last
-        const lines = jsonText.split('\n');
-        // remove ```json or ``` at start
-        lines.shift();
-        // remove trailing ```
-        if (lines[lines.length - 1].trim().startsWith('```')) {
-          lines.pop();
-        }
-        jsonText = lines.join('\n');
-      }
-
-      // 3) now try parse
-      let parsed;
-      try {
-        parsed = JSON.parse(jsonText);
-      } catch (err) {
-        console.error('Failed to parse cleaned JSON:', jsonText, err);
-        setError('AI returned malformed JSON. See console.');
+       const {
+        description,
+        responsibilities,
+        requirements,
+        salaryMin,
+        salaryMax
+      } = aiRes.data || {};
+      if (!description || !Array.isArray(responsibilities) || !Array.isArray(requirements)) {
+        setError('Incomplete job data received from AI.');
         return;
       }
 
@@ -78,17 +144,41 @@ Return ONLY JSON.
       const fullJob = {
         title,
         location,
-        description       : parsed.description,
-        responsibilities  : parsed.responsibilities.join('; '),
-        requirements      : parsed.requirements.join('; '),
-        salaryRange       : `${parsed.salaryRangeMin}-${parsed.salaryRangeMax}`
+        description,
+        responsibilities  : responsibilities.join('; '),
+        requirements      : requirements.join('; '),
+        salaryRangeMin    : salaryMin ?? null,
+        salaryRangeMax   : salaryMax ?? null,
+        vendorName,
+        employmentType
       };
-      setJobDraft(fullJob);
+
+      const salaryRangeLabel = salaryMin != null && salaryMax != null
+        ? `${salaryMin} - ${salaryMax}`
+        : salaryMin != null
+          ? `${salaryMin}+`
+          : salaryMax != null
+            ? `Up to ${salaryMax}`
+            : 'Not specified';
+
+      setJobDraft({
+        title,
+        location,
+        description,
+        responsibilities,
+        requirements,
+        salaryRangeMin: salaryMin ?? null,
+        salaryRangeMax: salaryMax ?? null,
+        salaryRangeLabel,
+        vendorName,
+        employmentType
+      });
 
       // 4) persist to your backend
-    await axios.post('/api/jobs', fullJob, {
+    await apiClient.post('jobs', fullJob, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     });
+
     onNewJob();
 
   } catch (e) {
@@ -134,10 +224,34 @@ Return ONLY JSON.
         onChange={e => setPrompt(e.target.value)}
       />
 
+      {/* Vendor name */}
+      <input
+        type="text"
+        className="w-full border p-2 rounded"
+        placeholder="Vendor name"
+        value={vendorName}
+        onChange={e => setVendorName(e.target.value)}
+      />
+
+      {/* Employment type */}
+      <select
+        className="w-full border p-2 rounded"
+        value={employmentType}
+        onChange={e => setEmploymentType(e.target.value)}
+      >
+        <option value="">Select employment type</option>
+        <option value="Full-Time">Full-Time</option>
+        <option value="Part-Time">Part-Time</option>
+        <option value="Contract">Contract</option>
+        <option value="Temporary">Temporary</option>
+        <option value="Internship">Internship</option>
+      </select>
+
+
       <button
         className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
         onClick={handleGenerate}
-        disabled={!title || !location || isGenerating}
+         disabled={!title || !location || !vendorName || !employmentType || isGenerating}
       >
         {isGenerating ? 'Generating…' : 'Generate & Save'}
       </button>
@@ -148,8 +262,9 @@ Return ONLY JSON.
         <div className="bg-gray-50 p-4 rounded border">
           <h3 className="text-lg font-bold">{jobDraft.title}</h3>
           <p className="italic text-sm">{jobDraft.location}</p>
+          <p className="text-sm mt-1"><strong>Vendor:</strong> {jobDraft.vendorName}</p>
+          <p className="text-sm"><strong>Employment Type:</strong> {jobDraft.employmentType}</p>
           <p className="mt-2">{jobDraft.description}</p>
-
           <h4 className="mt-4 font-semibold">Responsibilities</h4>
           <ul className="list-disc list-inside">
             {jobDraft.responsibilities.map((r,i) => <li key={i}>{r}</li>)}
@@ -161,7 +276,7 @@ Return ONLY JSON.
           </ul>
 
           <p className="mt-4">
-            <strong>Salary Range:</strong> {jobDraft.salaryRange}
+             <strong>Salary Range:</strong> {jobDraft.salaryRangeLabel}
           </p>
         </div>
       )}

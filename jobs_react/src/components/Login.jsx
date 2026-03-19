@@ -1,17 +1,17 @@
 // src/components/Login.jsx
 import { useState } from 'react';
-import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
-  // rename to match backend DTOs
+  
   const [creds, setCreds] = useState({ username: '', password: '' });
-  const [error, setError]     = useState('');
   const [isRegister, setIsRegister] = useState(false);
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
   const nav = useNavigate();
 
-  // after registering, your backend should return { token }
-  const handleRegister = async () => {
+  const doRegister = async () => {
     try {
       const { data } = await axios.post(
         '/api/users/register',
@@ -23,14 +23,19 @@ export default function Login() {
         : (await axios.post('/api/users/login', creds)).data.token;
 
       localStorage.setItem('token', token);
+      const { data } = await postRegister(creds);
+      const token = data?.token;
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      await dispatch(loginUser(creds)).unwrap();
       nav('/admin');
     } catch (e) {
-      console.error(e.response?.status, e.response?.data ?? e.message);
-      setError(e.response?.data?.message || 'Registration failed');
+      console.error(e);
     }
   };
 
-  const handleLogin = async (e) => {
+  const doLogin = async (e) => {
     e.preventDefault();
     try {
       const { data } = await axios.post(
@@ -38,17 +43,19 @@ export default function Login() {
         creds
       );
       localStorage.setItem('token', data.token);
+      await dispatch(loginUser(creds)).unwrap();
       nav('/admin');
     } catch (e) {
-      console.error(e.response?.status, e.response?.data ?? e.message);
-      setError('Login failed—see console.');
+      console.error(e);
     }
   };
+
   return (
     <div className="max-w-sm mx-auto p-4">
       <h2 className="text-2xl mb-4">{isRegister ? 'Register' : 'Log In'}</h2>
       {error && <p className="text-red-500 mb-2">{error}</p>}
-      <form onSubmit={isRegister ? e => { e.preventDefault(); handleRegister(); } : handleLogin}>
+
+      <form onSubmit={isRegister ? (e) => { e.preventDefault(); doRegister(); } : doLogin}>
         <label className="block mb-2">
           Username
           <input
@@ -59,6 +66,7 @@ export default function Login() {
             required
           />
         </label>
+
         <label className="block mb-4">
           Password
           <input
@@ -69,19 +77,16 @@ export default function Login() {
             required
           />
         </label>
-        <button
-          type="submit"
-          className="w-full bg-blue-600 text-white py-2 rounded"
-        >
+
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded" disabled={loading}>
           {isRegister ? 'Register' : 'Log In'}
         </button>
       </form>
+
       <p className="mt-4 text-center">
-        {isRegister
-          ? 'Already have an account?'
-          : "Don't have an account?"}{' '}
+        {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
         <button
-          onClick={() => { setIsRegister(!isRegister); setError(''); }}
+          onClick={() => { setIsRegister(!isRegister); }}
           className="text-blue-600 underline"
         >
           {isRegister ? 'Log In' : 'Register'}

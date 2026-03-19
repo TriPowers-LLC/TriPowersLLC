@@ -1,10 +1,17 @@
-import path from "path"
+import path from "path";
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite'
+import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig({
-  plugins: [react(), tailwindcss(),] ,
+const shouldProxyApi = !process.env.VITE_API_BASE_URL;
+
+const config = {
+  plugins: [react(), tailwindcss()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/setupTests.js',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -13,17 +20,21 @@ export default defineConfig({
       'styles': path.resolve(__dirname, './src/styles'),
     },
   },
-  server: {
+  };
+
+if (shouldProxyApi) {
+  config.server = {
     proxy: {
       // Forward any /api/* request to your App Service
       '/api': {
-        //target: 'https://tripowersllc-api-hxb8buf3apbqfwcy.centralus-01.azurewebsites.net',
         target: 'http://localhost:5169', // Use your local API URL
         changeOrigin: true,
         secure: false,          // if you’re on HTTPS
         rewrite: path => path,  // keep the /api prefix
       },
     },
-  },
-});
+  };
+}
+
+export default defineConfig(config);
 // https://vitejs.dev/config/

@@ -11,7 +11,7 @@ namespace TriPowersLLC.Models
         public required string firstName { get; set; }
         public required string lastName { get; set; }
         public required string email { get; set; }
-        public required string password { get; set; }
+        public string? password { get; set; }
         public required string phone { get; set; }
         public required string streetAddress { get; set; }
         public required string city { get; set; }
@@ -23,6 +23,15 @@ namespace TriPowersLLC.Models
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
         public int JobId { get; set; }
         public Job Job { get; set; } = null!;
+        public int? UserId { get; set; }
+        public User? User { get; set; }
 
+
+        // JobsApi application fields
+        public string ResumeUrl { get; set; } = string.Empty;
+        public string CoverLetter { get; set; } = string.Empty;
+        public string LinkedInProfile { get; set; } = string.Empty;
+        public string PortfolioUrl { get; set; } = string.Empty;
+        public string Message { get; set; } = string.Empty;
     }
 }

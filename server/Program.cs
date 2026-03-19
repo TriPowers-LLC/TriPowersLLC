@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
+using Microsoft.AspNetCore.Routing.Matching;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,12 +14,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using DotNetEnv;
 
+DotNetEnv.Env.Load();
+if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
 
 var builder = WebApplication.CreateBuilder(args);
 
 // 0. JWT Authentication
-var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtKey =
+    builder.Configuration["Jwt:Key"];
+
 if (string.IsNullOrEmpty(jwtKey))
     throw new InvalidOperationException("Missing Jwt:Key in configuration");
 
@@ -35,8 +43,16 @@ builder.Services
     });
 
 // 1. EF Core
+var connectionString =
+    builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")
+    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+    throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
+
 builder.Services.AddDbContext<JobDBContext>(opts =>
-    opts.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    opts.UseNpgsql(connectionString));
 
 // 2. Named OpenAI HttpClient
 
@@ -55,8 +71,31 @@ builder.Services.AddControllersWithViews();
 // 4. Swagger / CORS / etc.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddCors(o => o.AddPolicy("AllowAll", p =>
-    p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
+
+var allowedOrigins = new[]
+{
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://api.tripowersllc.com",
+    "https://www.tripowersllc.com",
+    "https://tripowersllc.com",
+    "https://tri-powers-llc.vercel.app",
+};
+
+builder.Services.AddCors(o =>
+{
+    // Default policy used globally
+    o.AddDefaultPolicy(p => p
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+
+    // Keep the named policy too (if you ever want endpoint-level use)
+    o.AddPolicy("AllowWeb", p => p
+        .WithOrigins(allowedOrigins)
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+});
 
 var baseUrl = builder.Configuration["Some:BaseUrl"];
 if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var serviceUri))
@@ -78,17 +117,102 @@ else
     app.UseHsts();
 }
 
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseCors("AllowAll");
+// *** CORS middleware MUST run here ***
+app.UseCors();  // <- default policy
 
-app.UseAuthentication(); // 4a. Use authentication
+app.UseAuthentication();
 app.UseAuthorization();
 
-// 5a. Map API controllers
+app.MapGet("/_routes", (IEnumerable<EndpointDataSource> sources) =>
+{
+    var lines = new List<string>();
+    foreach (var src in sources)
+        foreach (var ep in src.Endpoints.OfType<RouteEndpoint>())
+            lines.Add($"HTTP: {string.Join(",", ep.Metadata.OfType<HttpMethodMetadata>().FirstOrDefault()?.HttpMethods ?? new[] { "*" })}  {ep.RoutePattern.RawText}");
+    return Results.Text(string.Join(Environment.NewLine, lines), "text/plain");
+}).AllowAnonymous();
+
+app.MapGet("/api/health", () => Results.Ok(new { ok = true, time = DateTimeOffset.UtcNow }))
+   .AllowAnonymous();
+
+app.MapGet("/__ef", () =>
+{
+    var names = new[] {
+        "Microsoft.EntityFrameworkCore",
+        "Microsoft.EntityFrameworkCore.Relational",
+        "Npgsql.EntityFrameworkCore.PostgreSQL"
+    };
+    var list = AppDomain.CurrentDomain.GetAssemblies()
+        .Where(a => names.Contains(a.GetName().Name))
+        .Select(a => new { a.GetName().Name, Version = a.GetName().Version!.ToString() });
+    return Results.Json(list);
+}).AllowAnonymous();
+
+app.MapGet("/_assemblies", () =>
+{
+    object TryGet(Func<(string name, string ver)> f)
+    {
+        try
+        {
+            var (name, ver) = f();
+            return new { name, version = ver, ok = true };
+        }
+        catch (Exception ex)
+        {
+            return new { ok = false, error = ex.GetType().Name, message = ex.Message };
+        }
+    }
+
+    var sql = TryGet(() => {
+        var asm = typeof(Npgsql.NpgsqlConnection).Assembly.GetName();
+        return (asm.Name!, asm.Version!.ToString());
+    });
+
+    var ef = TryGet(() => {
+        var asm = AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name!.Contains("Npgsql.EntityFrameworkCore.PostgreSQL"));
+        var name = asm.GetName();
+        return (name.Name!, name.Version!.ToString());
+    });
+
+    var loaded = AppDomain.CurrentDomain
+        .GetAssemblies()
+        .Select(a => a.GetName())
+        .Where(n => n.Name!.Contains("Npgsql", StringComparison.OrdinalIgnoreCase)
+                 || n.Name!.Contains("EntityFrameworkCore.PostgreSQL", StringComparison.OrdinalIgnoreCase))
+        .Select(n => new { n.Name, Version = n.Version?.ToString() })
+        .ToArray();
+
+    return Results.Json(new { sql, ef, loaded }, statusCode: 200);
+}).AllowAnonymous();
+
+app.MapGet("/api/dbcheck", async (IConfiguration cfg) =>
+{
+    var cs = cfg.GetConnectionString("DefaultConnection")
+             ?? cfg["DEFAULT_CONNECTION"]
+             ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
+
+    try
+    {
+        using var con = new Npgsql.NpgsqlConnection(cs);
+        await con.OpenAsync();
+        return Results.Ok(new { ok = true, serverVersion = con.ServerVersion });
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.ToString());
+    }
+}).AllowAnonymous();
+
+// Let all preflights succeed
+app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.NoContent())
+   .AllowAnonymous();
+
 app.MapControllers();
 
 app.MapControllerRoute(
@@ -97,3 +221,5 @@ app.MapControllerRoute(
 );
 
 app.Run();
+
+public partial class Program { }
