@@ -6,15 +6,14 @@ import JobEditor from '../JobEditor';
 
 describe('Job components', () => {
   test('JobEditor creates a job', async () => {
-    const user = userEvent.setup();
     const handleSave = vi.fn();
 
     render(<JobEditor onSave={handleSave} />);
 
-    await user.type(screen.getByLabelText(/title/i), 'Engineer');
-    await user.type(screen.getByLabelText(/location/i), 'Remote');
-    await user.type(screen.getByLabelText(/description/i), 'Build things');
-    await user.click(screen.getByRole('button', { name: /create/i }));
+    await userEvent.type(screen.getByLabelText(/title/i), 'Engineer');
+    await userEvent.type(screen.getByLabelText(/location/i), 'Remote');
+    await userEvent.type(screen.getByLabelText(/description/i), 'Build things');
+    await userEvent.click(screen.getByRole('button', { name: /create/i }));
 
     expect(handleSave).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -26,7 +25,7 @@ describe('Job components', () => {
   });
 
   test('JobEditor updates a job', async () => {
-    const user = userEvent.setup();
+    
     const handleSave = vi.fn();
     const job = { id: 1, title: 'Dev', location: 'NY', description: 'Old' };
 
@@ -45,13 +44,12 @@ describe('Job components', () => {
   });
 
   test('JobsTable delete flow', async () => {
-    const user = userEvent.setup();
     const handleDelete = vi.fn();
     const jobs = [{ id: 7, title: 'QA', location: 'Austin' }];
 
     render(<JobsTable jobs={jobs} onDelete={handleDelete} />);
 
-    await user.click(screen.getByLabelText(/delete qa/i));
+    await userEvent.click(screen.getByLabelText(/delete qa/i));
 
     expect(handleDelete).toHaveBeenCalledWith(7);
   });

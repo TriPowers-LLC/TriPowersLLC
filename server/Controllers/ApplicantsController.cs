@@ -86,18 +86,6 @@ namespace TriPowersLLC.Controllers
             _context.Entry(existing).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            // decrement job applicants count (best-effort)
-            try
-            {
-                var job = await _context.Jobs.FindAsync(Applicants.JobId);
-                if (job != null && job.ApplicantsCount > 0)
-                {
-                    job.ApplicantsCount -= 1;
-                    await _context.SaveChangesAsync();
-                }
-            }
-            catch { /* swallow */ }
-
             return NoContent();
         }
 

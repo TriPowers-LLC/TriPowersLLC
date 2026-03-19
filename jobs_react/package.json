@@ -35,7 +35,7 @@
     "start": "vite start",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "vite test",
+    "test": "vitest",
     "eject": "vite eject"
   },
   "eslintConfig": {

@@ -89,8 +89,12 @@ const jobsSlice = createSlice({
       })
       .addCase(fetchJobs.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload || [];
-      })
+        state.list = Array.isArray(action.payload)
+          ? action.payload
+          : Array.isArray(action.payload?.jobs)
+            ? action.payload.jobs
+            : [];
+    })
       .addCase(fetchJobs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;

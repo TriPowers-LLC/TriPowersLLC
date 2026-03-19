@@ -1,11 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-<<<<<<< HEAD
-    <TargetFramework>net10.0</TargetFramework>
-=======
-    <TargetFramework>net9.0</TargetFramework>
->>>>>>> 0c65dfe15558630c415c8d9dd4cd911334947142
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>2a286224-05aa-42e7-9a87-d73b52f5c5f7</UserSecretsId>
@@ -31,13 +27,12 @@
   <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
   <!-- Npgsql provider for PostgreSQL (EF Core 7) -->
   <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.11" />
-  <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.10" />
+  <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
 
   <!-- Scaffolding: mark dev-only to avoid pulling EF8 transitively -->
   <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.7">
     <PrivateAssets>all</PrivateAssets>
   </PackageReference>
-  <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
 
   <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.0" />
   <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />

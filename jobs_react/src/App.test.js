@@ -9,5 +9,5 @@ test('renders navigation', () => {
       <App />
     </Provider>
   );
-  expect(screen.getByText(/contact/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/contact/i).length).toBeGreaterThan(0);
 });

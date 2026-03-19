@@ -6,11 +6,13 @@ using TriPowersLLC.Models;
 namespace TriPowersLLC.Controllers;
 
 [ApiController]
+[Route("api/jobs")]
 [Route("api/public/jobs")]
 [AllowAnonymous]
 public class PublicJobsController : ControllerBase
 {
     private readonly JobDBContext _db;
+    public const string GetJobRouteName = "GetPublicJob";
 
     public PublicJobsController(JobDBContext db)
     {
@@ -29,7 +31,7 @@ public class PublicJobsController : ControllerBase
     }
 
     // GET: /api/public/jobs/{id}
-    [HttpGet("{id:int}")]
+    [HttpGet("{id:int}", Name = GetJobRouteName)]
     public async Task<ActionResult<Job>> GetJob(int id)
     {
         var job = await _db.Jobs.FindAsync(id);
