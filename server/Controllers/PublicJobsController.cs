@@ -1,45 +1,41 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TriPowersLLC.Contracts;
 using TriPowersLLC.Models;
 
-namespace TriPowersLLC.Controllers;
-
-[ApiController]
-[Route("api/jobs")]
-[Route("api/public/jobs")]
-[AllowAnonymous]
-public class PublicJobsController : ControllerBase
+namespace TriPowersLLC.Controllers
 {
-    private readonly JobDBContext _db;
-    public const string GetJobRouteName = "GetPublicJob";
-
-    public PublicJobsController(JobDBContext db)
+    [ApiController]
+    [Route("api/jobs")]
+    public class PublicJobsController : ControllerBase
     {
-        _db = db;
-    }
+        internal const string GetJobRouteName = "GetPublicJobById";
 
-    // GET: /api/public/jobs
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<Job>>> GetJobs()
-    {
-        var jobs = await _db.Jobs
-            .OrderByDescending(j => j.PostedAt)
-            .ToListAsync();
+        private readonly JobDBContext _db;
 
-        return Ok(jobs);
-    }
-
-    // GET: /api/public/jobs/{id}
-    [HttpGet("{id:int}", Name = GetJobRouteName)]
-    public async Task<ActionResult<Job>> GetJob(int id)
-    {
-        var job = await _db.Jobs.FindAsync(id);
-        if (job == null)
+        public PublicJobsController(JobDBContext db)
         {
-            return NotFound();
+            _db = db;
         }
 
-        return Ok(job);
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IEnumerable<JobResponse>> GetAll()
+        {
+            var jobs = await _db.Jobs
+                .OrderByDescending(j => j.PostedAt)
+                .ToListAsync();
+
+            return jobs.Select(JobResponse.FromEntity);
+        }
+
+        [HttpGet("{id}", Name = GetJobRouteName)]
+        [AllowAnonymous]
+        public async Task<ActionResult<JobResponse>> GetById(int id)
+        {
+            var job = await _db.Jobs.FindAsync(id);
+            return job is null ? NotFound() : JobResponse.FromEntity(job);
+        }
     }
 }

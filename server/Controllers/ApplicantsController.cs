@@ -2,17 +2,16 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using System.Security.Claims;
 using TriPowersLLC.Models;
 
 namespace TriPowersLLC.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/admin/[controller]")]
     [ApiController]
+    [Authorize(Roles = "Admin")]
     public class ApplicantsController : ControllerBase
     {
         private readonly JobDBContext _context;
@@ -23,20 +22,25 @@ namespace TriPowersLLC.Controllers
             return int.TryParse(userId, out var parsed) ? parsed : null;
         }
 
-        public ApplicantsController(JobDBContext context)
+        // GET: api/admin/Applicants
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Applicants>>> GetApplicants()
         {
             _context = context;
         }
 
-        // POST: api/Applicants
-        [HttpPost]
-        public async Task<ActionResult<Applicants>> PostApplicants(Applicants applicants)
+        // GET: api/admin/Applicants/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Applicants>> GetApplicants(int id)
         {
             applicants.AppliedAt = DateTime.UtcNow;
 
-       // If the caller is authenticated, attach their user id to the application
-            var userId = GetUserId();
-            if (userId.HasValue)
+        // PUT: api/admin/Applicants/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutApplicants(int id, Applicants applicants)
+        {
+            if (id != applicants.id)
             {
                 applicants.UserId = userId.Value;
             }
@@ -59,11 +63,9 @@ namespace TriPowersLLC.Controllers
             return CreatedAtAction("GetApplicants", new { id = applicants.id }, applicants);
         }
 
-        // PUT: api/Applicants/5
-        [HttpPut("{id}")]
-
-        [Authorize]
-        public async Task<IActionResult> PutApplicants(int id, Applicants updated)
+        // POST: api/admin/Applicants
+        [HttpPost]
+        public async Task<ActionResult<Applicants>> PostApplicants(Applicants applicants)
         {
             
             var userId = GetUserId();
@@ -89,10 +91,9 @@ namespace TriPowersLLC.Controllers
             return NoContent();
         }
 
-        // GET: api/Applicants/me
-        [HttpGet("me")]
-        [Authorize]
-        public async Task<ActionResult<IEnumerable<Applicants>>> GetMyApplicants()
+        // DELETE: api/admin/Applicants/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteApplicants(int id)
         {
             var userId = GetUserId();
             if (userId is null) return Unauthorized();
