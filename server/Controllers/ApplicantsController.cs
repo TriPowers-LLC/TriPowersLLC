@@ -20,6 +20,12 @@ namespace TriPowersLLC.Controllers
             return int.TryParse(userId, out var parsed) ? parsed : null;
         }
 
+        private int? GetUserId()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(userId, out var parsed) ? parsed : null;
+        }
+
         public ApplicantsController(JobDBContext context)
         {
             _context = context;

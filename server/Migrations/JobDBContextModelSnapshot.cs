@@ -30,6 +30,14 @@ namespace TriPowersLLC.Migrations
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+
+                    b.Property<DateTime>("AppliedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<int>("JobId")
                         .HasColumnType("int");
 

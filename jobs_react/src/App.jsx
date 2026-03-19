@@ -40,17 +40,14 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route element={<WideLayout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/services" element={<Services />} />
-        </Route>
-
         <Route element={<PublicLayout />}>
+          <Route path="/" element={<Home />} />
           <Route path="/apply/:id" element={<JobDetail />} />
+          <Route path="/careers" element={<JobList />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
-          <Route path="/careers" element={<JobList />} />
+          <Route path="/services" element={<Services />} />
           <Route path="/login" element={<Login />} />
         </Route>
 

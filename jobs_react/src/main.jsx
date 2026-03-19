@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import { Provider } from 'react-redux';
-import { store } from './actions/store';
+import { store } from './actions/store.js';
 import './styles/index.css'; // Optional: if you had global styles
 
 ReactDOM.createRoot(document.getElementById('root')).render(
