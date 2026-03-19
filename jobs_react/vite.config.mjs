@@ -7,6 +7,11 @@ const shouldProxyApi = !process.env.VITE_API_BASE_URL;
 
 const config = {
   plugins: [react(), tailwindcss()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/setupTests.js',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

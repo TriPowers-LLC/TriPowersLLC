@@ -1,79 +1,95 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TriPowersLLC.Contracts;
 using TriPowersLLC.Models;
-using Microsoft.AspNetCore.Authorization;
-using System;
 
-[ApiController]
-[Route("api/[controller]")]
-[Authorize] // Ensure this controller requires authentication
-public class JobsController : ControllerBase
+namespace TriPowersLLC.Controllers
 {
-    private readonly JobDBContext _db;
-    public JobsController(JobDBContext db)
+    [ApiController]
+    [Route("api/admin/jobs")]
+    [Authorize(Roles = "Admin")]
+    public class JobsController : ControllerBase
     {
-        _db = db;
+        private readonly JobDBContext _db;
 
-        // If you have access to configuration, inject it and use here
-        // Example: IConfiguration _config, then use _config["OpenAI:ApiKey"]
-        // Remove or adjust the following line as needed:
-        // var key = builder.Configuration["OpenAI:ApiKey"];
-        // Console.WriteLine($"[DEBUG] Using OpenAI key prefix: {key?.Substring(0, 4)}…");
-    }
-
-
-    // GET /api/jobs
-    [HttpGet]
-    public async Task<IEnumerable<Job>> GetAll() =>
-        await _db.Jobs.OrderByDescending(j => j.PostedAt).ToListAsync();
-
-    // GET /api/jobs/{id}
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Job>> GetById(int id)
-    {
-        var job = await _db.Jobs.FindAsync(id);
-        return job == null ? NotFound() : job;
-    }
-
-    // POST /api/jobs
-    [HttpPost]
-    public async Task<ActionResult<Job>> Create(Job job)
-    {
-        _db.Jobs.Add(job);
-        await _db.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = job.Id }, job);
-    }
-
-    // PUT /api/jobs/{id}
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, Job job)
-    {
-        if (id != job.Id) return BadRequest();
-
-        _db.Entry(job).State = EntityState.Modified;
-        try
+        public JobsController(JobDBContext db)
         {
+            _db = db;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<JobResponse>> Create([FromBody] JobCreateRequest request)
+        {
+            if (request.SalaryRangeMin > request.SalaryRangeMax)
+            {
+                return BadRequest(new { error = "SalaryRangeMin cannot exceed SalaryRangeMax." });
+            }
+
+            var job = new Job
+            {
+                Title = request.Title,
+                Description = request.Description,
+                Requirements = request.Requirements,
+                Responsibilities = request.Responsibilities,
+                Location = request.Location,
+                EmploymentType = request.EmploymentType,
+                VendorName = request.VendorName,
+                SalaryRangeMin = request.SalaryRangeMin,
+                SalaryRangeMax = request.SalaryRangeMax,
+                Benefits = request.Benefits,
+                PostedAt = DateTime.UtcNow
+            };
+
+            _db.Jobs.Add(job);
             await _db.SaveChangesAsync();
+
+            var response = JobResponse.FromEntity(job);
+            return CreatedAtRoute(PublicJobsController.GetJobRouteName, new { id = job.Id }, response);
         }
-        catch (DbUpdateConcurrencyException)
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequest request)
         {
-            if (!JobExists(id)) return NotFound();
-            throw;
+            if (request.SalaryRangeMin > request.SalaryRangeMax)
+            {
+                return BadRequest(new { error = "SalaryRangeMin cannot exceed SalaryRangeMax." });
+            }
+
+            var job = await _db.Jobs.FirstOrDefaultAsync(j => j.Id == id);
+            if (job is null)
+            {
+                return NotFound();
+            }
+
+            job.Title = request.Title;
+            job.Description = request.Description;
+            job.Requirements = request.Requirements;
+            job.Responsibilities = request.Responsibilities;
+            job.Location = request.Location;
+            job.EmploymentType = request.EmploymentType;
+            job.VendorName = request.VendorName;
+            job.SalaryRangeMin = request.SalaryRangeMin;
+            job.SalaryRangeMax = request.SalaryRangeMax;
+            job.Benefits = request.Benefits;
+
+            await _db.SaveChangesAsync();
+            return NoContent();
         }
-        return NoContent();
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var job = await _db.Jobs.FindAsync(id);
+            if (job is null)
+            {
+                return NotFound();
+            }
+
+            _db.Jobs.Remove(job);
+            await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
     }
-
-    // DELETE /api/jobs/{id}
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var job = await _db.Jobs.FindAsync(id);
-        if (job == null) return NotFound();
-
-        _db.Jobs.Remove(job);
-        await _db.SaveChangesAsync();
-        return NoContent();
-    }
-
-    private bool JobExists(int id) => _db.Jobs.Any(e => e.Id == id);
 }

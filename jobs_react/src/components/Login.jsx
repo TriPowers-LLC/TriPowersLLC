@@ -1,38 +1,39 @@
 // src/components/Login.jsx
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { postLogin, postRegister } from '../api/auth';
+import { postRegister } from '../api/auth';
+import { loginUser } from '../slices/authSlice';
 
 export default function Login() {
   
   const [creds, setCreds] = useState({ username: '', password: '' });
-  const [error, setError]     = useState('');
   const [isRegister, setIsRegister] = useState(false);
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
   const nav = useNavigate();
 
   const doRegister = async () => {
     try {
       const { data } = await postRegister(creds);
-      const token = data?.token || (await postLogin(creds)).data?.token;
-      localStorage.setItem('token', token);
-      setError('');
+      const token = data?.token;
+      if (token) {
+        localStorage.setItem('token', token);
+      }
+      await dispatch(loginUser(creds)).unwrap();
       nav('/admin');
     } catch (e) {
       console.error(e);
-      setError(e.message || 'Registration failed');
     }
   };
 
   const doLogin = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await postLogin(creds);
-      localStorage.setItem('token', data.token);
-      setError('');
+      await dispatch(loginUser(creds)).unwrap();
       nav('/admin');
     } catch (e) {
       console.error(e);
-      setError(e.message || 'Login failed');
     }
   };
 
@@ -64,7 +65,7 @@ export default function Login() {
           />
         </label>
 
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded" disabled={loading}>
           {isRegister ? 'Register' : 'Log In'}
         </button>
       </form>
@@ -72,7 +73,7 @@ export default function Login() {
       <p className="mt-4 text-center">
         {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
         <button
-          onClick={() => { setIsRegister(!isRegister); setError(''); }}
+          onClick={() => { setIsRegister(!isRegister); }}
           className="text-blue-600 underline"
         >
           {isRegister ? 'Log In' : 'Register'}

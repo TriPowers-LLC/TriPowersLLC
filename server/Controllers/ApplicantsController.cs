@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
@@ -11,11 +7,12 @@ using TriPowersLLC.Models;
 
 namespace TriPowersLLC.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/admin/applicants")]
+    [Authorize(Roles = "Admin")]
     public class ApplicantsController : ControllerBase
     {
-        private readonly JobDBContext _context;
+        private readonly JobDBContext _db;
 
         private int? GetUserId()
         {
@@ -72,6 +69,27 @@ namespace TriPowersLLC.Controllers
             _context.Entry(existing).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
+            existingApplicant.firstName = applicant.firstName;
+            existingApplicant.lastName = applicant.lastName;
+            existingApplicant.email = applicant.email;
+            existingApplicant.password = applicant.password;
+            existingApplicant.phone = applicant.phone;
+            existingApplicant.streetAddress = applicant.streetAddress;
+            existingApplicant.city = applicant.city;
+            existingApplicant.state = applicant.state;
+            existingApplicant.country = applicant.country;
+            existingApplicant.zipCode = applicant.zipCode;
+            existingApplicant.ResumeText = applicant.ResumeText;
+            existingApplicant.JobId = applicant.JobId;
+            existingApplicant.UserId = applicant.UserId;
+            existingApplicant.ResumeUrl = applicant.ResumeUrl;
+            existingApplicant.CoverLetter = applicant.CoverLetter;
+            existingApplicant.LinkedInProfile = applicant.LinkedInProfile;
+            existingApplicant.PortfolioUrl = applicant.PortfolioUrl;
+            existingApplicant.Message = applicant.Message;
+            existingApplicant.AppliedAt = applicant.AppliedAt;
+
+            await _db.SaveChangesAsync();
             return NoContent();
         }
 
