@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TriPowersLLC.Models;
 
@@ -11,9 +12,11 @@ using TriPowersLLC.Models;
 namespace TriPowersLLC.Migrations
 {
     [DbContext(typeof(JobDBContext))]
-    partial class JobDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260110120000_AddApplicantUserAssociation")]
+    partial class AddApplicantUserAssociation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -32,9 +35,6 @@ namespace TriPowersLLC.Migrations
 
                     b.Property<DateTime>("AppliedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
 
                     b.Property<int>("JobId")
                         .HasColumnType("int");
@@ -77,6 +77,9 @@ namespace TriPowersLLC.Migrations
                     b.Property<string>("streetAddress")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
 
                     b.Property<string>("zipCode")
                         .IsRequired()
@@ -183,6 +186,7 @@ namespace TriPowersLLC.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Job");
+
                     b.Navigation("User");
                 });
 #pragma warning restore 612, 618
