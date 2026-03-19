@@ -1,27 +1,48 @@
 const trimTrailingSlashes = (value) => value.replace(/\/+$/, '');
 
-const isHostedTriPowersSite = () => {
-  if (typeof window === 'undefined') {
+const LEGACY_API_HOST = 'api.tripowersllc.com';
+
+const readEnvUrl = (key) => import.meta.env[key]?.trim() || '';
+
+const isLegacyApiUrl = (value) => {
+  if (!value) {
     return false;
   }
 
-  return ['tripowersllc.com', 'www.tripowersllc.com'].includes(window.location.hostname);
+  try {
+    return new URL(value).hostname === LEGACY_API_HOST;
+  } catch {
+    return value.includes(LEGACY_API_HOST);
+  }
 };
 
-export const getApiBaseUrl = () => {
-  const envBase = import.meta.env.VITE_API_BASE_URL?.trim();
+const getPreferredApiOrigin = () => {
+  const apiBase = readEnvUrl('VITE_API_BASE_URL');
+  const jobsApiBase = readEnvUrl('VITE_JOBS_API_BASE_URL');
 
-  if (envBase && !isHostedTriPowersSite()) {
-    return trimTrailingSlashes(envBase);
+  if (apiBase && !isLegacyApiUrl(apiBase)) {
+    return trimTrailingSlashes(apiBase);
+  }
+
+  if (jobsApiBase) {
+    return trimTrailingSlashes(jobsApiBase);
+  }
+
+  if (apiBase) {
+    return trimTrailingSlashes(apiBase);
   }
 
   return '/api';
 };
 
-export const getJobsApiBaseUrl = () => {
-  const envBase = import.meta.env.VITE_JOBS_API_BASE_URL?.trim();
+export const getApiBaseUrl = () => {
+  return getPreferredApiOrigin();
+};
 
-  if (envBase && !isHostedTriPowersSite()) {
+export const getJobsApiBaseUrl = () => {
+  const envBase = readEnvUrl('VITE_JOBS_API_BASE_URL');
+
+  if (envBase) {
     return trimTrailingSlashes(envBase);
   }
 
