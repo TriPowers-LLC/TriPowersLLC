@@ -4,26 +4,28 @@ using Microsoft.EntityFrameworkCore;
 using TriPowersLLC.Contracts;
 using TriPowersLLC.Models;
 
-
 namespace TriPowersLLC.Controllers
 {
     [ApiController]
     [Route("api/admin/jobs")]
     [Authorize(Roles = "Admin")]
     public class JobsController : ControllerBase
-    {private readonly JobDBContext _db;
+    {
+        private readonly JobDBContext _db;
 
         public JobsController(JobDBContext db)
         {
             _db = db;
         }
-         [HttpPost]
+
+        [HttpPost]
         public async Task<ActionResult<JobResponse>> Create([FromBody] JobCreateRequest request)
         {
             if (request.SalaryRangeMin > request.SalaryRangeMax)
             {
                 return BadRequest(new { error = "SalaryRangeMin cannot exceed SalaryRangeMax." });
             }
+
             var job = new Job
             {
                 Title = request.Title,
@@ -38,11 +40,14 @@ namespace TriPowersLLC.Controllers
                 Benefits = request.Benefits,
                 PostedAt = DateTime.UtcNow
             };
+
             _db.Jobs.Add(job);
             await _db.SaveChangesAsync();
+
             var response = JobResponse.FromEntity(job);
             return CreatedAtRoute(PublicJobsController.GetJobRouteName, new { id = job.Id }, response);
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequest request)
         {
@@ -71,17 +76,20 @@ namespace TriPowersLLC.Controllers
             await _db.SaveChangesAsync();
             return NoContent();
         }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-             var job = await _db.Jobs.FindAsync(id);
+            var job = await _db.Jobs.FindAsync(id);
             if (job is null)
             {
                 return NotFound();
             }
+
             _db.Jobs.Remove(job);
             await _db.SaveChangesAsync();
-             return NoContent();
+
+            return NoContent();
         }
     }
 }
