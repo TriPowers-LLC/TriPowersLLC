@@ -6,6 +6,20 @@ const PRODUCTION_SITE_HOSTS = new Set(['tripowersllc.com', 'www.tripowersllc.com
 
 const readEnvUrl = (key) => import.meta.env[key]?.trim() || '';
 
+const normalizeApiOrigin = (value) => {
+  if (!value) {
+    return value;
+  }
+
+  const trimmedValue = trimTrailingSlashes(value);
+
+  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && trimmedValue.startsWith('http://')) {
+    return `https://${trimmedValue.slice('http://'.length)}`;
+  }
+
+  return trimmedValue;
+};
+
 const isLegacyApiUrl = (value) => {
   if (!value) {
     return false;
@@ -27,19 +41,23 @@ const isProductionSite = () => {
 };
 
 const getPreferredApiOrigin = () => {
-  const apiBase = readEnvUrl('VITE_API_BASE_URL');
-  const jobsApiBase = readEnvUrl('VITE_JOBS_API_BASE_URL');
+  const apiBase = normalizeApiOrigin(readEnvUrl('VITE_API_BASE_URL'));
+  const jobsApiBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
 
   if (apiBase && !isLegacyApiUrl(apiBase)) {
-    return trimTrailingSlashes(apiBase);
+    return apiBase;
   }
 
   if (jobsApiBase) {
-    return trimTrailingSlashes(jobsApiBase);
+    return jobsApiBase;
   }
 
   if (apiBase) {
-    return trimTrailingSlashes(apiBase);
+    return apiBase;
+  }
+
+  if (isProductionSite()) {
+    return AWS_API_ORIGIN;
   }
 
   if (isProductionSite()) {
@@ -54,10 +72,10 @@ export const getApiBaseUrl = () => {
 };
 
 export const getJobsApiBaseUrl = () => {
-  const envBase = readEnvUrl('VITE_JOBS_API_BASE_URL');
+  const envBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
 
   if (envBase) {
-    return trimTrailingSlashes(envBase);
+    return envBase;
   }
 
   return getApiBaseUrl();
