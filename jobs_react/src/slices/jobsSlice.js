@@ -1,61 +1,111 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import api from "../api/apiClient";
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import api from '../api/apiClient';
+import { createJob, deleteJob, updateJob } from '../api/adminApi';
 
-export const fetchJobs = createAsyncThunk("jobs/fetchAll", async (_, { rejectWithValue }) => {
+export const fetchJobs = createAsyncThunk('jobs/fetchAll', async (_, { rejectWithValue }) => {
   try {
-    const { data } = await api.get("/public/jobs");
+    const { data } = await api.get('/public/jobs');
     return data;
   } catch (error) {
-    return rejectWithValue(error.message || "Unable to load jobs");
+    return rejectWithValue(error.message || 'Unable to load jobs');
   }
 });
 
-export const fetchJobById = createAsyncThunk("jobs/fetchById", async (id, { rejectWithValue }) => {
+export const fetchJobById = createAsyncThunk('jobs/fetchById', async (id, { rejectWithValue }) => {
   try {
     const { data } = await api.get(`/public/jobs/${id}`);
     return data;
   } catch (error) {
-    return rejectWithValue(error.message || "Unable to load the job");
+    return rejectWithValue(error.message || 'Unable to load the job');
+  }
+});
+
+export const createJobThunk = createAsyncThunk('jobs/create', async (payload, { rejectWithValue }) => {
+  try {
+    const { data } = await createJob(payload);
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.message || 'Unable to create the job');
+  }
+});
+
+export const updateJobThunk = createAsyncThunk('jobs/update', async ({ id, data: payload }, { rejectWithValue }) => {
+  try {
+    const { data } = await updateJob(id, payload);
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.message || 'Unable to update the job');
+  }
+});
+
+export const deleteJobThunk = createAsyncThunk('jobs/delete', async (id, { rejectWithValue }) => {
+  try {
+    await deleteJob(id);
+    return id;
+  } catch (error) {
+    return rejectWithValue(error.message || 'Unable to delete the job');
   }
 });
 
 const jobsSlice = createSlice({
-  name: "jobs",
+  name: 'jobs',
   initialState: {
     items: [],
+    list: [],
     selectedJob: null,
-    status: "idle",
+    status: 'idle',
     error: null,
-    detailStatus: "idle",
+    detailStatus: 'idle',
     detailError: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
       .addCase(fetchJobs.pending, (state) => {
-        state.status = "loading";
+        state.status = 'loading';
         state.error = null;
       })
       .addCase(fetchJobs.fulfilled, (state, action) => {
-        state.status = "succeeded";
+        state.status = 'succeeded';
         state.items = action.payload;
+        state.list = action.payload;
       })
       .addCase(fetchJobs.rejected, (state, action) => {
-        state.status = "failed";
+        state.status = 'failed';
         state.error = action.payload;
       })
       .addCase(fetchJobById.pending, (state) => {
-        state.detailStatus = "loading";
+        state.detailStatus = 'loading';
         state.detailError = null;
         state.selectedJob = null;
       })
       .addCase(fetchJobById.fulfilled, (state, action) => {
-        state.detailStatus = "succeeded";
+        state.detailStatus = 'succeeded';
         state.selectedJob = action.payload;
       })
       .addCase(fetchJobById.rejected, (state, action) => {
-        state.detailStatus = "failed";
+        state.detailStatus = 'failed';
         state.detailError = action.payload;
+      })
+      .addCase(createJobThunk.fulfilled, (state, action) => {
+        state.items = [...state.items, action.payload];
+        state.list = [...state.list, action.payload];
+      })
+      .addCase(updateJobThunk.fulfilled, (state, action) => {
+        const normalize = (job) => String(job.id) === String(action.payload.id);
+        state.items = state.items.map((job) => (normalize(job) ? action.payload : job));
+        state.list = state.list.map((job) => (normalize(job) ? action.payload : job));
+        if (state.selectedJob && normalize(state.selectedJob)) {
+          state.selectedJob = action.payload;
+        }
+      })
+      .addCase(deleteJobThunk.fulfilled, (state, action) => {
+        const keep = (job) => String(job.id) !== String(action.payload);
+        state.items = state.items.filter(keep);
+        state.list = state.list.filter(keep);
+        if (state.selectedJob && !keep(state.selectedJob)) {
+          state.selectedJob = null;
+        }
       });
   },
 });

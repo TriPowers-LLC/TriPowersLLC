@@ -6,7 +6,7 @@ import Services from './components/Services';
 import Contact from './components/Contact';
 import About from './components/About';
 import Portfolio from './components/Portfolio';
-import Admin from './components/Admin';
+import Admin from './modules/admin/Admin';
 import Login from './components/Login';
 import JobList from './components/public/JobList';
 import JobDetail from './components/public/JobDetail';
