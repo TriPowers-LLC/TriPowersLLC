@@ -10,7 +10,7 @@ export default function Login() {
   const [creds, setCreds] = useState({ username: '', password: '' });
   const [isRegister, setIsRegister] = useState(false);
   const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { loading, error } = useSelector((state) => state.auth ?? { loading: false, error: null });
   const nav = useNavigate();
 
   const doRegister = async () => {
