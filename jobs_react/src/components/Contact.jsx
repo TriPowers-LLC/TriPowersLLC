@@ -1,15 +1,9 @@
-import React, { useRef} from "react";
+import React, { useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import * as emailjs from "@emailjs/browser";
-
+import api from "../api/apiClient";
 
 gsap.registerPlugin(useGSAP);
-
-const SERVICE_ID  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-const PUBLIC_KEY  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY; 
-
 
 const Contact = () => {
   const formRef = useRef(null);
@@ -20,25 +14,28 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const data = new FormData(formRef.current);
-     if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
-      console.error("EmailJS env vars are missing");
-      alert("Contact form is not configured yet. Please try again later.");
-      return;
-    }
+
+    const payload = Object.fromEntries(new FormData(formRef.current));
 
     try {
-      await emailjs.sendForm(
-        SERVICE_ID,
-        TEMPLATE_ID,
-        formRef.current,
-        PUBLIC_KEY
-      );
-
+      await api.post("send-email", payload);
       alert("Thank you! We'll be in touch shortly.");
       formRef.current.reset();
     } catch (err) {
-      console.error("Error sending EmailJS message:", err);
+      const isNetworkError = /network error/i.test(err?.message || "");
+
+      if (isNetworkError) {
+        try {
+          await api.post("api/send-email", payload);
+          alert("Thank you! We'll be in touch shortly.");
+          formRef.current.reset();
+          return;
+        } catch (fallbackErr) {
+          console.error("Error sending contact form message (fallback failed):", fallbackErr);
+        }
+      }
+
+      console.error("Error sending contact form message:", err);
       alert("There was an error sending your message. Please try again later.");
     }
   };
@@ -53,13 +50,11 @@ const Contact = () => {
           Get in touch
         </h2>
 
-        {/* form */}
         <form
           ref={formRef}
           className="mt-8 grid gap-6"
           onSubmit={handleSubmit}
         >
-          {/* name */}
           <div className="grid gap-2">
             <label htmlFor="name" className="font-medium text-blue-900">
               Full name
@@ -74,7 +69,6 @@ const Contact = () => {
             />
           </div>
 
-          {/* email */}
           <div className="grid gap-2">
             <label htmlFor="email" className="font-medium text-blue-900">
               Email address
@@ -89,9 +83,8 @@ const Contact = () => {
             />
           </div>
 
-          {/* phone */}
           <div className="grid gap-2">
-            <label htmlFor="email" className="font-medium text-blue-900">
+            <label htmlFor="phone" className="font-medium text-blue-900">
               Contact Number
             </label>
             <input
@@ -104,7 +97,6 @@ const Contact = () => {
             />
           </div>
 
-          {/* message */}
           <div className="grid gap-2">
             <label htmlFor="message" className="font-medium text-blue-900">
               Message
@@ -119,7 +111,6 @@ const Contact = () => {
             ></textarea>
           </div>
 
-          {/* submit */}
           <button
             type="submit"
             id="submit-btn"
@@ -132,6 +123,5 @@ const Contact = () => {
     </section>
   );
 };
-// Contact component
 
 export default Contact;
