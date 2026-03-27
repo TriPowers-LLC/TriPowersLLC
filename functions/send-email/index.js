@@ -1,15 +1,7 @@
-// api/src/functions/send-email.js
-const sendgrid = require("@sendgrid/mail");
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const RESEND_TO = process.env.RESEND_TO || "kimberlyjenkins@tripowersllc.com";
+const RESEND_FROM = process.env.RESEND_FROM || "onboarding@resend.dev";
 
-const SENDGRID_KEY = process.env.SENDGRID_KEY;
-const SENDGRID_TO = process.env.SENDGRID_TO || "kimberlyjenkins@tripowersllc.com";
-const SENDGRID_FROM = process.env.SENDGRID_FROM || "kimberlyjenkins@tripowersllc.com";
-
-if (SENDGRID_KEY) {
-  sendgrid.setApiKey(SENDGRID_KEY);
-}
-
-// v4 model: default export of an async function
 module.exports = async (context, req) => {
   const allowedOrigins = new Set([
     "https://www.tripowersllc.com",
@@ -22,7 +14,6 @@ module.exports = async (context, req) => {
   const allowOrigin = origin && allowedOrigins.has(origin) ? origin : null;
   const baseHeaders = allowOrigin ? { "Access-Control-Allow-Origin": allowOrigin, Vary: "Origin" } : {};
 
-  // Handle CORS preflight
   if (req?.method === "OPTIONS") {
     context.res = {
       status: 204,
@@ -42,8 +33,8 @@ module.exports = async (context, req) => {
     return;
   }
 
-  if (!SENDGRID_KEY) {
-    context.log.error("SendGrid API key is not configured");
+  if (!RESEND_API_KEY) {
+    context.log.error("Resend API key is not configured");
     context.res = {
       status: 500,
       headers: baseHeaders,
@@ -52,19 +43,44 @@ module.exports = async (context, req) => {
     return;
   }
 
-  const messageText = `Name:\n${name}\n${message}\n\nPhone: ${phone || "N/A"}\nEmail: ${email}`;
+  const subject = `Contact form: ${name}`;
+  const text = `Name: ${name}\nEmail: ${email}\nPhone: ${phone || "N/A"}\n\nMessage:\n${message}`;
+  const html = `
+    <h2>New contact form message</h2>
+    <p><strong>Name:</strong> ${name}</p>
+    <p><strong>Email:</strong> ${email}</p>
+    <p><strong>Phone:</strong> ${phone || "N/A"}</p>
+    <p><strong>Message:</strong></p>
+    <p>${String(message).replace(/\n/g, "<br />")}</p>
+  `;
 
   try {
-    await sendgrid.send({
-      to: SENDGRID_TO,
-      from: SENDGRID_FROM,
-      replyTo: email,
-      subject: `Contact form: ${name}`,
-      text: messageText
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        from: RESEND_FROM,
+        to: [RESEND_TO],
+        reply_to: email,
+        subject,
+        text,
+        html
+      })
     });
+
+    if (!response.ok) {
+      const errorBody = await response.text();
+      context.log.error("Resend API failed", { status: response.status, body: errorBody });
+      context.res = { status: 502, headers: baseHeaders, body: "Failed to send email." };
+      return;
+    }
+
     context.res = { status: 202, headers: baseHeaders, body: "Email sent" };
   } catch (error) {
-    context.log.error("SendGrid failed to send email", error);
+    context.log.error("Resend request failed", error);
     context.res = {
       status: 502,
       headers: baseHeaders,
@@ -73,6 +89,5 @@ module.exports = async (context, req) => {
   }
 };
 
-// optional HTTP trigger metadata (only if you need custom route/method):
 module.exports.route = "send-email";
 module.exports.methods = ["POST", "OPTIONS"];
