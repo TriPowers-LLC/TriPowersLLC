@@ -119,6 +119,8 @@ The API reads its database connection string from the environment. Set the
 `DEFAULT_CONNECTION` environment variable to your SQL Server connection string
 before running the application. The value in `server/appsettings.json` is only a placeholder.
 
+For frontend API routing, leave `VITE_API_BASE_URL` unset to use same-origin `/api` by default. If you set `VITE_API_BASE_URL`, include the full API path prefix (for example `https://your-host/api`) so requests do not target the wrong route.
+
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
