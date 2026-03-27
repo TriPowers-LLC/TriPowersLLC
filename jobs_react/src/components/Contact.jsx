@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import api from "../api/apiClient";
+import functionsApi from "../api/functionsClient";
 
 gsap.registerPlugin(useGSAP);
 
@@ -18,7 +18,7 @@ const Contact = () => {
     const payload = Object.fromEntries(new FormData(formRef.current));
 
     try {
-      await api.post("send-email", payload);
+      await functionsApi.post("send-email", payload);
       alert("Thank you! We'll be in touch shortly.");
       formRef.current.reset();
     } catch (err) {

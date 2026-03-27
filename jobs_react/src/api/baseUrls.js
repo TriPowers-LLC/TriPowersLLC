@@ -1,8 +1,6 @@
 const trimTrailingSlashes = (value) => value.replace(/\/+$/, '');
 
 const LEGACY_API_HOST = 'api.tripowersllc.com';
-const AWS_API_ORIGIN = 'https://tripowersjobsapi-env.eba-htdmnp7b.us-east-2.elasticbeanstalk.com/api';
-const PRODUCTION_SITE_HOSTS = new Set(['tripowersllc.com', 'www.tripowersllc.com']);
 
 const readEnvUrl = (key) => import.meta.env[key]?.trim() || '';
 
@@ -32,14 +30,6 @@ const isLegacyApiUrl = (value) => {
   }
 };
 
-const isProductionSite = () => {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  return PRODUCTION_SITE_HOSTS.has(window.location.hostname);
-};
-
 const getPreferredApiOrigin = () => {
   const apiBase = normalizeApiOrigin(readEnvUrl('VITE_API_BASE_URL'));
   const jobsApiBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
@@ -56,14 +46,7 @@ const getPreferredApiOrigin = () => {
     return apiBase;
   }
 
-  if (isProductionSite()) {
-    return AWS_API_ORIGIN;
-  }
-
-  if (isProductionSite()) {
-    return AWS_API_ORIGIN;
-  }
-
+  // Default to same-origin API path in production to avoid hard-coded host timeouts.
   return '/api';
 };
 
