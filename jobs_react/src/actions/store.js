@@ -1,6 +1,8 @@
-import { configureStore, createSlice } from '@reduxjs/toolkit';
-import jobsSlice from "../slices/jobsSlice.js";
-import applicationsSlice from "../slices/applicationsSlice.js";
+import { configureStore } from '@reduxjs/toolkit';
+import applicantsReducer, { fetchApplicants } from '../slices/applicantsSlice.js';
+import jobsSlice from '../slices/jobsSlice.js';
+import applicationsSlice from '../slices/applicationsSlice.js';
+import authReducer from '../slices/authSlice.js';
 
 const legacyApplicantsSlice = createSlice({
   name: "applicants",
@@ -28,27 +30,17 @@ const legacyApplicantsSlice = createSlice({
 
 export const store = configureStore({
   reducer: {
-    applicants: legacyApplicantsSlice.reducer,
+    applicants: applicantsReducer,
     jobs: jobsSlice.reducer,
     applications: applicationsSlice.reducer,
+    auth: authReducer,
   },
 });
 
 export const ACTION_TYPES = {
-  FETCH_APPLICANTS_START: "FETCH_APPLICANTS_START",
-  FETCH_APPLICANTS_SUCCESS: "FETCH_APPLICANTS_SUCCESS",
-  FETCH_APPLICANTS_FAILURE: "FETCH_APPLICANTS_FAILURE"
+  FETCH_APPLICANTS_START: 'FETCH_APPLICANTS_START',
+  FETCH_APPLICANTS_SUCCESS: 'FETCH_APPLICANTS_SUCCESS',
+  FETCH_APPLICANTS_FAILURE: 'FETCH_APPLICANTS_FAILURE',
 };
 
-export const fetchAll = () => {
-  return async (dispatch) => {
-    dispatch(legacyApplicantsSlice.actions.fetchApplicantsStart());
-    try {
-      const response = await fetch("https://jsonplaceholder.typicode.com/users");
-      const data = await response.json();
-      dispatch(legacyApplicantsSlice.actions.fetchApplicantsSuccess(data));
-    } catch (error) {
-      dispatch(legacyApplicantsSlice.actions.fetchApplicantsFailure(error.message));
-    }
-  };
-};
+export const fetchAll = () => fetchApplicants();

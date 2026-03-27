@@ -2,7 +2,7 @@
   "routes": [
     {
       "route": "/api/*",
-      "rewrite": "https://tripowersllc-api-gwc9crgrfpcxaqee.centralus-01.azurewebsites.net*"
+      "rewrite": "https://tripowersjobsapi-env.eba-htdmnp7b.us-east-2.elasticbeanstalk.com*"
     }
   ],
   "navigationFallback": {
