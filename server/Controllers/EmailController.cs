@@ -1,4 +1,5 @@
-using System.Net.Http;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
@@ -19,7 +20,7 @@ namespace TriPowersLLC.Controllers
             _config = config;
         }
 
-        // Proxy to Azure Function to avoid CORS and 405 on the site host
+        // Send contact form email via Resend directly from the API host (AWS)
         [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Send([FromBody] ContactDto dto)
@@ -27,31 +28,63 @@ namespace TriPowersLLC.Controllers
             if (string.IsNullOrWhiteSpace(dto?.name) || string.IsNullOrWhiteSpace(dto.email) || string.IsNullOrWhiteSpace(dto.message))
                 return BadRequest("Missing fields");
 
-            var functionsBase = _config["Functions:BaseUrl"]
-                               ?? Environment.GetEnvironmentVariable("FUNCTIONS_BASE_URL")
-                               ?? "https://api.tripowersllc.com/api";
+            var resendApiKey = _config["Resend:ApiKey"]
+                               ?? Environment.GetEnvironmentVariable("RESEND_API_KEY");
+            var resendTo = _config["Resend:To"]
+                           ?? Environment.GetEnvironmentVariable("RESEND_TO")
+                           ?? "kimberlyjenkins@tripowersllc.com";
+            var resendFrom = _config["Resend:From"]
+                             ?? Environment.GetEnvironmentVariable("RESEND_FROM")
+                             ?? "onboarding@resend.dev";
 
-            if (!functionsBase.EndsWith("/")) functionsBase += "/";
-            var endpoint = new Uri(new Uri(functionsBase), "send-email");
+            if (string.IsNullOrWhiteSpace(resendApiKey))
+                return Problem(title: "Email service is not configured", detail: "Missing RESEND_API_KEY.", statusCode: 500);
+
+            var subject = $"Contact form: {dto.name}";
+            var safeName = WebUtility.HtmlEncode(dto.name);
+            var safeEmail = WebUtility.HtmlEncode(dto.email);
+            var safePhone = WebUtility.HtmlEncode(string.IsNullOrWhiteSpace(dto.phone) ? "N/A" : dto.phone);
+            var safeMessage = WebUtility.HtmlEncode(dto.message).Replace("\n", "<br />");
+
+            var text = $"Name: {dto.name}\nEmail: {dto.email}\nPhone: {dto.phone ?? "N/A"}\n\nMessage:\n{dto.message}";
+            var html = $@"
+<h2>New contact form message</h2>
+<p><strong>Name:</strong> {safeName}</p>
+<p><strong>Email:</strong> {safeEmail}</p>
+<p><strong>Phone:</strong> {safePhone}</p>
+<p><strong>Message:</strong></p>
+<p>{safeMessage}</p>";
+
+            var payload = new
+            {
+                from = resendFrom,
+                to = new[] { resendTo },
+                reply_to = dto.email,
+                subject,
+                text,
+                html
+            };
 
             var client = _http.CreateClient();
-            var payload = JsonSerializer.Serialize(dto);
-            var content = new StringContent(payload, Encoding.UTF8, "application/json");
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", resendApiKey);
+
+            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
             try
             {
-                using var resp = await client.PostAsync(endpoint, content);
-                var text = await resp.Content.ReadAsStringAsync();
+                using var resp = await client.PostAsync("https://api.resend.com/emails", content);
+                var responseText = await resp.Content.ReadAsStringAsync();
+
                 if (resp.IsSuccessStatusCode)
                 {
-                    // Mirror success from the function (202 or 200)
-                    return StatusCode((int)resp.StatusCode, string.IsNullOrWhiteSpace(text) ? "Email sent" : text);
+                    return StatusCode(202, "Email sent");
                 }
-                return StatusCode((int)resp.StatusCode, string.IsNullOrWhiteSpace(text) ? "Failed to send email" : text);
+
+                return StatusCode((int)resp.StatusCode, string.IsNullOrWhiteSpace(responseText) ? "Failed to send email" : responseText);
             }
             catch (Exception ex)
             {
-                return Problem(title: "Proxy to email function failed", detail: ex.Message);
+                return Problem(title: "Resend request failed", detail: ex.Message);
             }
         }
     }
@@ -64,4 +97,3 @@ namespace TriPowersLLC.Controllers
         public string message { get; set; } = string.Empty;
     }
 }
-
