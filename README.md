@@ -67,7 +67,7 @@ TriPowers LLC is a certified SDVOSB, minority, and veteran-owned small business.
 
 - server/ – ASP.NET Core 8 backend configured with JWT authentication and Entity Framework Core for database access
 
-- functions/ – Node.js Azure Functions app containing a SendGrid-powered email function and scripts for running with Azure Functions Core Tools
+- functions/ – Legacy Node.js Azure Functions app (optional/legacy path; primary email sending is handled by the ASP.NET API).
 
 - jobs_react/ – React front end built with Vite and targeting Node.js 20.x
 
@@ -85,17 +85,13 @@ TriPowers LLC is a certified SDVOSB, minority, and veteran-owned small business.
 
     5. dotnet run – launches the API on the default ASP.NET Core ports.
 
-- Serverless Functions (functions/)
+- API email configuration (server/)
 
-    1. Install Node.js (matching the project’s version) and Azure Functions Core Tools v4.
+    1. Set `RESEND_API_KEY` in the API environment for contact-form email delivery.
 
-    2. cd functions
+    2. Optionally set `RESEND_TO` and `RESEND_FROM` (defaults are used if not provided).
 
-    3. npm install
-
-    4. Set SENDGRID_KEY in the environment for email delivery.
-
-    5. npm start (runs func start) to host the functions on http://localhost:7071.
+    3. The API endpoint `POST /api/send-email` sends directly to Resend, which works for AWS-hosted deployments.
 
 - Frontend (jobs_react/)
 
@@ -113,11 +109,9 @@ TriPowers LLC is a certified SDVOSB, minority, and veteran-owned small business.
 
 - Node.js 20.x & npm
 
-- Azure Functions Core Tools v4
-
 - (Optional) Local SQL Server or another EF Core–supported database
 
-- SendGrid API key for the email function
+- Resend API key for the email function
 
 ### Configuration
 
