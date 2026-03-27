@@ -1,9 +1,23 @@
 import React, { useRef } from "react";
+import axios from "axios";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import api from "../api/apiClient";
+import { getApiBaseUrl } from "../api/baseUrls";
 
 gsap.registerPlugin(useGSAP);
+
+const buildEmailEndpoints = () => {
+  const apiBase = (getApiBaseUrl() || "").trim().replace(/\/+$/, "");
+
+  const candidates = apiBase
+    ? [
+        `${apiBase}/send-email`,
+        `${apiBase}/api/send-email`
+      ]
+    : ["/api/send-email", "/send-email"];
+
+  return [...new Set(candidates.map((url) => url.replace(/([^:]\/)\/+/g, "$1")))];
+};
 
 const Contact = () => {
   const formRef = useRef(null);
@@ -16,28 +30,33 @@ const Contact = () => {
     e.preventDefault();
 
     const payload = Object.fromEntries(new FormData(formRef.current));
+    const endpoints = buildEmailEndpoints();
 
-    try {
-      await api.post("send-email", payload);
-      alert("Thank you! We'll be in touch shortly.");
-      formRef.current.reset();
-    } catch (err) {
-      const isNetworkError = /network error/i.test(err?.message || "");
+    let lastError;
 
-      if (isNetworkError) {
-        try {
-          await api.post("api/send-email", payload);
-          alert("Thank you! We'll be in touch shortly.");
-          formRef.current.reset();
-          return;
-        } catch (fallbackErr) {
-          console.error("Error sending contact form message (fallback failed):", fallbackErr);
+    for (const endpoint of endpoints) {
+      try {
+        await axios.post(endpoint, payload, {
+          headers: { "Content-Type": "application/json" }
+        });
+
+        alert("Thank you! We'll be in touch shortly.");
+        formRef.current.reset();
+        return;
+      } catch (err) {
+        lastError = err;
+
+        const status = err?.response?.status;
+        const shouldTryNext = !status || status === 404 || status === 405;
+
+        if (!shouldTryNext) {
+          break;
         }
       }
-
-      console.error("Error sending contact form message:", err);
-      alert("There was an error sending your message. Please try again later.");
     }
+
+    console.error("Error sending contact form message:", lastError);
+    alert("There was an error sending your message. Please try again later.");
   };
 
   return (
