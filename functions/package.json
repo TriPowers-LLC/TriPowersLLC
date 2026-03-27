@@ -13,8 +13,7 @@
   },
   "author": "TriPowers LLC",
   "dependencies": {
-    "@azure/functions": "^4.0.0",
-    "@sendgrid/mail": "^8.1.5"
+    "@azure/functions": "^4.0.0"
   },
   "devDependencies": {
     "azure-functions-core-tools": "^4.x"
