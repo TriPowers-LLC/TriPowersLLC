@@ -212,8 +212,14 @@ app.MapGet("/api/dbcheck", async (IConfiguration cfg) =>
 }).AllowAnonymous();
 
 // Let all preflights succeed
-app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, () => Results.NoContent())
-   .AllowAnonymous();
+app.MapMethods("/api/{*path}", new[] { "OPTIONS" }, (HttpContext context) =>
+{
+    context.Response.Headers["Access-Control-Allow-Origin"] = context.Request.Headers["Origin"];
+    context.Response.Headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS";
+    context.Response.Headers["Access-Control-Allow-Headers"] = "Authorization,Content-Type";
+
+    return Results.NoContent();
+}).AllowAnonymous();
 
 app.MapControllers();
 

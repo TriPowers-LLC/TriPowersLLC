@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import axios from "axios";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
-import { getApiBaseUrl } from "../api/baseUrls";
+import publicApi from "../api/publicApiClient";
 
 gsap.registerPlugin(useGSAP);
 
@@ -34,25 +34,13 @@ const Contact = () => {
 
     let lastError;
 
-    for (const endpoint of endpoints) {
-      try {
-        await axios.post(endpoint, payload, {
-          headers: { "Content-Type": "application/json" }
-        });
-
-        alert("Thank you! We'll be in touch shortly.");
-        formRef.current.reset();
-        return;
-      } catch (err) {
-        lastError = err;
-
-        const status = err?.response?.status;
-        const shouldTryNext = !status || status === 404 || status === 405;
-
-        if (!shouldTryNext) {
-          break;
-        }
-      }
+    try {
+      await publicApi.post("send-email", payload);
+      alert("Thank you! We'll be in touch shortly.");
+      formRef.current.reset();
+    } catch (err) {
+      console.error("Error sending contact form message:", err);
+      alert("There was an error sending your message. Please try again later.");
     }
 
     console.error("Error sending contact form message:", lastError);
