@@ -1,4 +1,6 @@
+const { Resend } = require("resend");
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const resend = new Resend(RESEND_API_KEY);
 const RESEND_TO = process.env.RESEND_TO || "kimberlyjenkins@tripowersllc.com";
 const RESEND_FROM = process.env.RESEND_FROM || "onboarding@resend.dev";
 
