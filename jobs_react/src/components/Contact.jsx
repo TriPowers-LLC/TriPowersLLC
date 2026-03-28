@@ -1,9 +1,23 @@
 import React, { useRef } from "react";
+import axios from "axios";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import publicApi from "../api/publicApiClient";
 
 gsap.registerPlugin(useGSAP);
+
+const buildEmailEndpoints = () => {
+  const apiBase = (getApiBaseUrl() || "").trim().replace(/\/+$/, "");
+
+  const candidates = apiBase
+    ? [
+        `${apiBase}/send-email`,
+        `${apiBase}/api/send-email`
+      ]
+    : ["/api/send-email", "/send-email"];
+
+  return [...new Set(candidates.map((url) => url.replace(/([^:]\/)\/+/g, "$1")))];
+};
 
 const Contact = () => {
   const formRef = useRef(null);
@@ -16,6 +30,9 @@ const Contact = () => {
     e.preventDefault();
 
     const payload = Object.fromEntries(new FormData(formRef.current));
+    const endpoints = buildEmailEndpoints();
+
+    let lastError;
 
     try {
       await publicApi.post("send-email", payload);
@@ -25,6 +42,9 @@ const Contact = () => {
       console.error("Error sending contact form message:", err);
       alert("There was an error sending your message. Please try again later.");
     }
+
+    console.error("Error sending contact form message:", lastError);
+    alert("There was an error sending your message. Please try again later.");
   };
 
   return (
