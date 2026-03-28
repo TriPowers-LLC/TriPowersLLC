@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Dedicated client for Azure Functions to avoid affecting ASP.NET API calls
-const envBase = import.meta.env.VITE_FUNCTIONS_BASE_URL?.trim();
+const envBase = import.meta.env.VITE_API_BASE_URL?.trim();
 const base = (envBase ? envBase : '/api').replace(/\/$/, '');
 
 const functionsApi = axios.create({
