@@ -72,6 +72,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHttpClient();
+
 var allowedOrigins = new[]
 {
     "http://localhost:5173",
