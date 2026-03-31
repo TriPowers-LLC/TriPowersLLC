@@ -1,6 +1,7 @@
 const trimTrailingSlashes = (value) => value.replace(/\/+$/, '');
 
-const LEGACY_API_HOST = 'api.tripowersllc.com';
+const LEGACY_API_HOSTS = ['api.tripowersllc.com'];
+const DEPRECATED_API_HOST_SUFFIXES = ['elasticbeanstalk.com'];
 
 const readEnvUrl = (key) => import.meta.env[key]?.trim() || '';
 
@@ -18,21 +19,31 @@ const normalizeApiOrigin = (value) => {
   return trimmedValue;
 };
 
+const hasDeprecatedApiHost = (hostname) =>
+  DEPRECATED_API_HOST_SUFFIXES.some((suffix) => hostname === suffix || hostname.endsWith(`.${suffix}`));
+
 const isLegacyApiUrl = (value) => {
   if (!value) {
     return false;
   }
 
   try {
-    return new URL(value).hostname === LEGACY_API_HOST;
+    const hostname = new URL(value).hostname;
+    return LEGACY_API_HOSTS.includes(hostname) || hasDeprecatedApiHost(hostname);
   } catch {
-    return value.includes(LEGACY_API_HOST);
+    return LEGACY_API_HOSTS.some((host) => value.includes(host))
+      || DEPRECATED_API_HOST_SUFFIXES.some((suffix) => value.includes(suffix));
   }
 };
 
 const getPreferredApiOrigin = () => {
   const apiBase = normalizeApiOrigin(readEnvUrl('VITE_API_BASE_URL'));
   const jobsApiBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
+
+  // Prefer dedicated jobs API origin when present (deployments may keep stale generic API env values).
+  if (jobsApiBase && !isLegacyApiUrl(jobsApiBase)) {
+    return jobsApiBase;
+  }
 
   if (apiBase && !isLegacyApiUrl(apiBase)) {
     return apiBase;
