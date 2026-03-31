@@ -6,49 +6,60 @@ import { postRegister } from '../api/auth';
 import { loginUser } from '../slices/authSlice';
 
 export default function Login() {
-  
   const [creds, setCreds] = useState({ username: '', password: '' });
   const [isRegister, setIsRegister] = useState(false);
-  const dispatch = useDispatch();
-  const { loading, error } = useSelector((state) => state.auth ?? { loading: false, error: null });
-  const nav = useNavigate();
 
-  const doRegister = async () => {
-    try {
-      const { data } = await postRegister(creds);
-      const token = data?.token;
-      if (token) {
-        localStorage.setItem('token', token);
-      }
-      await dispatch(loginUser(creds)).unwrap();
-      nav('/admin');
-    } catch (e) {
-      console.error(e);
-    }
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const { loading, error } = useSelector(
+    (state) => state.auth ?? { loading: false, error: null }
+  );
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCreds((prev) => ({ ...prev, [name]: value }));
   };
 
-  const doLogin = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     try {
+      if (isRegister) {
+        const { data } = await postRegister(creds);
+        const token = data?.token || null;
+        const role = data?.role || data?.user?.role || 'admin';
+
+        if (token) {
+          localStorage.setItem('token', token);
+          localStorage.setItem('role', role);
+        }
+
+        navigate('/admin');
+        return;
+      }
+
       await dispatch(loginUser(creds)).unwrap();
-      nav('/admin');
-    } catch (e) {
-      console.error(e);
+      navigate('/admin');
+    } catch (err) {
+      console.error(err);
     }
   };
 
   return (
     <div className="max-w-sm mx-auto p-4">
       <h2 className="text-2xl mb-4">{isRegister ? 'Register' : 'Log In'}</h2>
+
       {error && <p className="text-red-500 mb-2">{error}</p>}
 
-      <form onSubmit={isRegister ? (e) => { e.preventDefault(); doRegister(); } : doLogin}>
+      <form onSubmit={handleSubmit}>
         <label className="block mb-2">
           Username
           <input
             type="text"
+            name="username"
             value={creds.username}
-            onChange={e => setCreds({ ...creds, username: e.target.value })}
+            onChange={handleChange}
             className="w-full border p-2 mt-1"
             required
           />
@@ -58,22 +69,28 @@ export default function Login() {
           Password
           <input
             type="password"
+            name="password"
             value={creds.password}
-            onChange={e => setCreds({ ...creds, password: e.target.value })}
+            onChange={handleChange}
             className="w-full border p-2 mt-1"
             required
           />
         </label>
 
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded" disabled={loading}>
-          {isRegister ? 'Register' : 'Log In'}
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-2 rounded"
+          disabled={loading}
+        >
+          {loading ? 'Please wait...' : isRegister ? 'Register' : 'Log In'}
         </button>
       </form>
 
       <p className="mt-4 text-center">
         {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
         <button
-          onClick={() => { setIsRegister(!isRegister); }}
+          type="button"
+          onClick={() => setIsRegister((prev) => !prev)}
           className="text-blue-600 underline"
         >
           {isRegister ? 'Log In' : 'Register'}
