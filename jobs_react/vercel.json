@@ -1,8 +1,14 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/" }],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://tripowersjobsapi-env.eba-htdmnp7b.us-east-2.elasticbeanstalk.com/api/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ],
   "buildCommand": "npm run build",
   "outputDirectory": "dist"
 }
-
-
-  

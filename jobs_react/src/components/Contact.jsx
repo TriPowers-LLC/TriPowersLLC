@@ -18,7 +18,7 @@ const Contact = () => {
     const payload = Object.fromEntries(new FormData(formRef.current));
 
     try {
-      await publicApi.post("send-email", payload);
+      await publicApi.post("send-email", payload, { timeout: 15000 });
       alert("Thank you! We'll be in touch shortly.");
       formRef.current.reset();
     } catch (err) {

@@ -1,6 +1,6 @@
 const trimTrailingSlashes = (value) => value.replace(/\/+$/, '');
 
-const LEGACY_API_HOST = 'api.tripowersllc.com';
+const LEGACY_API_HOSTS = ['api.tripowersllc.com'];
 
 const readEnvUrl = (key) => import.meta.env[key]?.trim() || '';
 
@@ -24,15 +24,21 @@ const isLegacyApiUrl = (value) => {
   }
 
   try {
-    return new URL(value).hostname === LEGACY_API_HOST;
+    const hostname = new URL(value).hostname;
+    return LEGACY_API_HOSTS.includes(hostname);
   } catch {
-    return value.includes(LEGACY_API_HOST);
+    return LEGACY_API_HOSTS.some((host) => value.includes(host));
   }
 };
 
 const getPreferredApiOrigin = () => {
   const apiBase = normalizeApiOrigin(readEnvUrl('VITE_API_BASE_URL'));
   const jobsApiBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
+
+  // Prefer dedicated jobs API origin when present.
+  if (jobsApiBase && !isLegacyApiUrl(jobsApiBase)) {
+    return jobsApiBase;
+  }
 
   if (apiBase && !isLegacyApiUrl(apiBase)) {
     return apiBase;
@@ -46,7 +52,6 @@ const getPreferredApiOrigin = () => {
     return apiBase;
   }
 
-  // Default to same-origin API path in production to avoid hard-coded host timeouts.
   return '/api';
 };
 
