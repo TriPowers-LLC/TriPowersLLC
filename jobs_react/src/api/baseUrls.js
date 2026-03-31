@@ -1,17 +1,22 @@
 const trimTrailingSlashes = (value) => value.replace(/\/+$/, '');
 
-const LEGACY_API_HOST = 'api.tripowersllc.com';
+const LEGACY_API_HOSTS = [
+  'api.tripowersllc.com',
+  'tripowersjobsapi-env.eba-htdmnp7b.us-east-2.elasticbeanstalk.com'
+];
 
 const readEnvUrl = (key) => import.meta.env[key]?.trim() || '';
 
 const normalizeApiOrigin = (value) => {
-  if (!value) {
-    return value;
-  }
+  if (!value) return value;
 
   const trimmedValue = trimTrailingSlashes(value);
 
-  if (typeof window !== 'undefined' && window.location.protocol === 'https:' && trimmedValue.startsWith('http://')) {
+  if (
+    typeof window !== 'undefined' &&
+    window.location.protocol === 'https:' &&
+    trimmedValue.startsWith('http://')
+  ) {
     return `https://${trimmedValue.slice('http://'.length)}`;
   }
 
@@ -19,14 +24,19 @@ const normalizeApiOrigin = (value) => {
 };
 
 const isLegacyApiUrl = (value) => {
-  if (!value) {
-    return false;
-  }
+  if (!value) return false;
 
   try {
-    return new URL(value).hostname === LEGACY_API_HOST;
+    const hostname = new URL(value).hostname;
+    return (
+      LEGACY_API_HOSTS.includes(hostname) ||
+      hostname.includes('elasticbeanstalk.com')
+    );
   } catch {
-    return value.includes(LEGACY_API_HOST);
+    return (
+      LEGACY_API_HOSTS.some((host) => value.includes(host)) ||
+      value.includes('elasticbeanstalk.com')
+    );
   }
 };
 
@@ -34,32 +44,16 @@ const getPreferredApiOrigin = () => {
   const apiBase = normalizeApiOrigin(readEnvUrl('VITE_API_BASE_URL'));
   const jobsApiBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
 
+  if (jobsApiBase && !isLegacyApiUrl(jobsApiBase)) {
+    return jobsApiBase;
+  }
+
   if (apiBase && !isLegacyApiUrl(apiBase)) {
     return apiBase;
   }
 
-  if (jobsApiBase) {
-    return jobsApiBase;
-  }
-
-  if (apiBase) {
-    return apiBase;
-  }
-
-  // Default to same-origin API path in production to avoid hard-coded host timeouts.
   return '/api';
 };
 
-export const getApiBaseUrl = () => {
-  return getPreferredApiOrigin();
-};
-
-export const getJobsApiBaseUrl = () => {
-  const envBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
-
-  if (envBase) {
-    return envBase;
-  }
-
-  return getApiBaseUrl();
-};
+export const getApiBaseUrl = () => getPreferredApiOrigin();
+export const getJobsApiBaseUrl = () => getApiBaseUrl();
