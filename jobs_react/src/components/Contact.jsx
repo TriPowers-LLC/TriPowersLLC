@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 
@@ -72,10 +72,6 @@ const Contact = () => {
             </p>
 
             <div className="mt-10 space-y-6 text-sm text-blue-100">
-              <div>
-                <p className="font-semibold text-white">Business Name</p>
-                <p>TriPowers LLC</p>
-              </div>
 
               <div>
                 <p className="font-semibold text-white">Services</p>
