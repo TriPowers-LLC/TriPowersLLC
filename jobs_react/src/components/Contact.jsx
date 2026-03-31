@@ -1,23 +1,9 @@
 import React, { useRef } from "react";
-import axios from "axios";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 //import publicApi from "../api/publicApiClient";
 
 gsap.registerPlugin(useGSAP);
-
-const buildEmailEndpoints = () => {
-  const apiBase = (getApiBaseUrl() || "").trim().replace(/\/+$/, "");
-
-  const candidates = apiBase
-    ? [
-        `${apiBase}/send-email`,
-        `${apiBase}/api/send-email`
-      ]
-    : ["/api/send-email", "/send-email"];
-
-  return [...new Set(candidates.map((url) => url.replace(/([^:]\/)\/+/g, "$1")))];
-};
 
 const Contact = () => {
   const formRef = useRef(null);
@@ -30,9 +16,6 @@ const Contact = () => {
     e.preventDefault();
 
     const payload = Object.fromEntries(new FormData(formRef.current));
-    const endpoints = buildEmailEndpoints();
-
-    let lastError;
 
     try {
       await axios.post("/api/send-email", payload, {
@@ -43,9 +26,6 @@ const Contact = () => {
       console.error("Error sending contact form message:", err);
       alert("There was an error sending your message. Please try again later.");
     }
-
-    console.error("Error sending contact form message:", lastError);
-    alert("There was an error sending your message. Please try again later.");
   };
 
   return (
@@ -73,6 +53,7 @@ const Contact = () => {
               name="name"
               required
               placeholder="Full Name"
+              autoComplete="name"
               className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
             />
           </div>
@@ -87,6 +68,7 @@ const Contact = () => {
               name="email"
               required
               placeholder="you@example.com"
+              autoComplete="email"
               className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
             />
           </div>
@@ -101,6 +83,7 @@ const Contact = () => {
               name="phone"
               required
               placeholder="xxx-xxx-xxxx"
+              autoComplete="tel"
               className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-300"
             />
           </div>
@@ -115,6 +98,7 @@ const Contact = () => {
               rows={5}
               required
               placeholder="How can we help?"
+              autoComplete="off"
               className="rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-300 resize-none"
             ></textarea>
           </div>
