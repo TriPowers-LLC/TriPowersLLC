@@ -25,14 +25,9 @@ const config = {
 if (shouldProxyApi) {
   config.server = {
     proxy: {
-      // Forward any /api/* request to your App Service
-      '/api': {
-        target: 'http://localhost:5169', // Use your local API URL
-        changeOrigin: true,
-        secure: false,          // if you’re on HTTPS
-        rewrite: path => path,  // keep the /api prefix
-      },
-    },
+    "/api/jobs": "http://localhost:5186",
+    "/api/auth": "http://localhost:5186"
+  }
   };
 }
 
