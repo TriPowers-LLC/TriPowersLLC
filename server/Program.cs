@@ -15,6 +15,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using DotNetEnv;
+using Amazon.S3;
+using Amazon;
 
 DotNetEnv.Env.Load();
 if (File.Exists("../.env")) DotNetEnv.Env.Load("../.env");
@@ -98,6 +100,17 @@ builder.Services.AddCors(o =>
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
+
+var region = builder.Configuration["AWS_REGION"] ?? "us-east-1";
+builder.Services.AddSingleton<IAmazonS3>(_ =>
+{
+    var config = new AmazonS3Config
+    {
+        RegionEndpoint = RegionEndpoint.GetBySystemName(region)
+    };
+    return new AmazonS3Client(config);
+});
+
 
 var baseUrl = builder.Configuration["Some:BaseUrl"];
 if (!Uri.TryCreate(baseUrl, UriKind.Absolute, out var serviceUri))

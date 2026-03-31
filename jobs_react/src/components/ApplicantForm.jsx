@@ -3,12 +3,53 @@ import { useState } from 'react';
 import apiClient from '../lib/apiClient';
 
 export default function ApplicantForm({ jobId, onSubmitted }) {
-  const [form, setForm] = useState({ firstname: '', lastname: '', phone: '', email: '', resume: '' });
+  const [form, setForm] = useState({ firstname: '', lastname: '', phone: '', email: '' });
   const [status, setStatus] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const handleFileChange = (e) => {
+    setSelectedFile(e.target.files[0]);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!selectedFile) {
+      alert("Please upload a resume");
+      return;
+    }
     try {
+      // 1️⃣ Get presigned URL
+      setLoading(true);
+      const presignRes = await fetch(`${API_BASE_URL}/api/uploads/presign`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fileName: selectedFile.name,
+          contentType: selectedFile.type
+        })
+      });
+
+      const { uploadUrl, objectKey } = await presignRes.json();
+
+      // 2️⃣ Upload file directly to S3
+      await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": selectedFile.type
+        },
+        body: selectedFile
+      });
+
+      // 3️⃣ Submit application with resume reference
+      await fetch(`${API_BASE_URL}/api/applications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jobId: 1, // replace with real jobId
+          resumeKey: objectKey
+        })
+      });
+
       await apiClient.post(`jobs/${jobId}/apply`, form);
       setStatus('Application submitted! 🎉');
       onSubmitted?.();
@@ -16,6 +57,7 @@ export default function ApplicantForm({ jobId, onSubmitted }) {
       console.error(err);
       setStatus('Error submitting application.');
     }
+    setLoading(false);
   };
 
   return (
@@ -45,12 +87,9 @@ export default function ApplicantForm({ jobId, onSubmitted }) {
         value={form.email}
         onChange={e => setForm({...form, email: e.target.value})}
       />
-      <textarea
+      <input type="file" accept=".pdf,.doc,.docx" onChange={handleFileChange} required
         placeholder="Resume / Cover Letter"
         className="w-full border p-2"
-        rows={5}
-        value={form.resume}
-        onChange={e => setForm({...form, resume: e.target.value})}
       />
       <button className="bg-blue-600 text-white px-4 py-2 rounded">
         Submit Application
