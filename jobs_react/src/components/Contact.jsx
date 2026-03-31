@@ -1,9 +1,43 @@
 import React, { useRef } from "react";
+import axios from "axios";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import publicApi from "../api/publicApiClient";
+import { getApiBaseUrl, getJobsApiBaseUrl } from "../api/baseUrls";
 
 gsap.registerPlugin(useGSAP);
+
+const trimSlashes = (value = "") => value.replace(/\/+$/, "");
+
+const buildSendEmailCandidates = () => {
+  const origins = [
+    getJobsApiBaseUrl(),
+    getApiBaseUrl(),
+    typeof window !== "undefined" ? window.location.origin : "",
+    "/api",
+    ""
+  ]
+    .map((origin) => trimSlashes((origin || "").trim()))
+    .filter(Boolean);
+
+  const candidates = origins.flatMap((origin) => {
+    if (origin === "/api") {
+      return ["/api/send-email", "/send-email"];
+    }
+
+    if (origin.endsWith("/api")) {
+      return [`${origin}/send-email`];
+    }
+
+    if (/^https?:\/\//i.test(origin)) {
+      return [`${origin}/api/send-email`, `${origin}/send-email`];
+    }
+
+    return [`${origin}/send-email`];
+  });
+
+  return [...new Set(candidates)];
+};
 
 const Contact = () => {
   const formRef = useRef(null);
@@ -18,11 +52,29 @@ const Contact = () => {
     const payload = Object.fromEntries(new FormData(formRef.current));
 
     try {
-      await publicApi.post("send-email", payload);
+      await publicApi.post("send-email", payload, { timeout: 10000 });
       alert("Thank you! We'll be in touch shortly.");
       formRef.current.reset();
-    } catch (err) {
-      console.error("Error sending contact form message:", err);
+      return;
+    } catch (primaryErr) {
+      const endpoints = buildSendEmailCandidates();
+      let lastError = primaryErr;
+
+      for (const endpoint of endpoints) {
+        try {
+          await axios.post(endpoint, payload, {
+            timeout: 10000,
+            headers: { "Content-Type": "application/json" }
+          });
+          alert("Thank you! We'll be in touch shortly.");
+          formRef.current.reset();
+          return;
+        } catch (err) {
+          lastError = err;
+        }
+      }
+
+      console.error("Error sending contact form message:", lastError);
       alert("There was an error sending your message. Please try again later.");
     }
   };
