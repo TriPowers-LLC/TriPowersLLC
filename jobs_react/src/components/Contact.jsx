@@ -1,5 +1,4 @@
 import React, { useRef } from "react";
-import axios from "axios";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import publicApi from "../api/publicApiClient";
