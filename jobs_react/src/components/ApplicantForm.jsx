@@ -3,7 +3,7 @@ import { useState } from 'react';
 import apiClient from '../lib/apiClient';
 
 export default function ApplicantForm({ jobId, onSubmitted }) {
-  const [form, setForm] = useState({ name: '', email: '', resume: '' });
+  const [form, setForm] = useState({ firstname: '', lastname: '', phone: '', email: '', resume: '' });
   const [status, setStatus] = useState('');
 
   const submit = async (e) => {
@@ -22,10 +22,22 @@ export default function ApplicantForm({ jobId, onSubmitted }) {
     <form onSubmit={submit} className="space-y-4">
       {status && <p className="text-green-600">{status}</p>}
       <input
-        type="text" placeholder="Your Name" required
+        type="text" placeholder="Your First Name" required
         className="w-full border p-2"
-        value={form.name}
-        onChange={e => setForm({...form, name: e.target.value})}
+        value={form.firstname}
+        onChange={e => setForm({...form, firstname: e.target.value})}
+      />
+      <input
+        type="text" placeholder="Your Last Name" required
+        className="w-full border p-2"
+        value={form.lastName}
+        onChange={e => setForm({...form, lastName: e.target.value})}
+      />
+      <input
+        type="email" placeholder="Your Phone" required
+        className="w-full border p-2"
+        value={form.phone}
+        onChange={e => setForm({...form, phone: e.target.value})}
       />
       <input
         type="email" placeholder="Your Email" required

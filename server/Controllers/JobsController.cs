@@ -38,7 +38,12 @@ namespace TriPowersLLC.Controllers
                 SalaryRangeMin = request.SalaryRangeMin,
                 SalaryRangeMax = request.SalaryRangeMax,
                 Benefits = request.Benefits,
-                PostedAt = DateTime.UtcNow
+                PostedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                IsActive = true,
+                Views = 0,
+                ApplicantsCount = 0
             };
 
             _db.Jobs.Add(job);
@@ -72,6 +77,7 @@ namespace TriPowersLLC.Controllers
             job.SalaryRangeMin = request.SalaryRangeMin;
             job.SalaryRangeMax = request.SalaryRangeMax;
             job.Benefits = request.Benefits;
+            job.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();
             return NoContent();

@@ -1,14 +1,14 @@
 // src/components/Careers.jsx
 import { useState, useEffect } from 'react';
-import jobsApi from '../api/jobsApiClient';
 import ApplicantForm from './ApplicantForm';
+import apiClient from '../lib/apiClient';
 
 export default function Careers() {
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {
-    jobsApi.get('jobs')
+    apiClient.post(`applicants/jobs/${jobId}`, form)
       .then(res => setJobs(res.data))
       .catch(console.error);
   }, []);
