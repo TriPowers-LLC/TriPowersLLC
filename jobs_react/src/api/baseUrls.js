@@ -1,7 +1,6 @@
 const trimTrailingSlashes = (value) => value.replace(/\/+$/, '');
 
 const LEGACY_API_HOSTS = [
-  'api.tripowersllc.com',
   'tripowersjobsapi-env.eba-htdmnp7b.us-east-2.elasticbeanstalk.com'
 ];
 
@@ -10,17 +9,7 @@ const readEnvUrl = (key) => import.meta.env[key]?.trim() || '';
 const normalizeApiOrigin = (value) => {
   if (!value) return value;
 
-  const trimmedValue = trimTrailingSlashes(value);
-
-  if (
-    typeof window !== 'undefined' &&
-    window.location.protocol === 'https:' &&
-    trimmedValue.startsWith('http://')
-  ) {
-    return `https://${trimmedValue.slice('http://'.length)}`;
-  }
-
-  return trimmedValue;
+  return trimTrailingSlashes(value);
 };
 
 const isLegacyApiUrl = (value) => {
