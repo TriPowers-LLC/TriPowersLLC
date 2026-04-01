@@ -1,8 +1,13 @@
 import axios from 'axios';
 import { getApiBaseUrl } from './baseUrls';
 
+const rawBase = getApiBaseUrl().replace(/\/+$/, '');
+const baseURL = rawBase.endsWith('/api') || rawBase === '/api'
+  ? rawBase
+  : `${rawBase}/api`;
+
 const api = axios.create({
-  baseURL: getApiBaseUrl(),
+   baseURL,
   headers: { 'Content-Type': 'application/json' }
 });
 
