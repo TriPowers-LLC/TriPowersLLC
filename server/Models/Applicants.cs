@@ -17,7 +17,7 @@ namespace TriPowersLLC.Models
         public required string city { get; set; }
         public required string state { get; set; }
         public required string country { get; set; }
-        [Column(TypeName = "nvarchar(10)")]
+        [Column(TypeName = "varchar(10)")]
         public required string zipCode { get; set; }
         public required string ResumeText { get; set; } = null!;
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;

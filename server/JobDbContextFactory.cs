@@ -8,7 +8,6 @@ namespace TriPowersLLC.Models
     {
         public JobDBContext CreateDbContext(string[] args)
         {
-            // Try env var first (easy for CLI), then appsettings
             var cs = Environment.GetEnvironmentVariable("DEFAULT_CONNECTION");
 
             if (string.IsNullOrWhiteSpace(cs))
@@ -27,7 +26,7 @@ namespace TriPowersLLC.Models
                 throw new InvalidOperationException("No connection string. Set DEFAULT_CONNECTION or ConnectionStrings:DefaultConnection.");
 
             var opts = new DbContextOptionsBuilder<JobDBContext>()
-                .UseSqlServer(cs)
+                .UseNpgsql(cs)
                 .Options;
 
             return new JobDBContext(opts);

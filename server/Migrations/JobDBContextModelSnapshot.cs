@@ -2,8 +2,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TriPowersLLC.Models;
 
 #nullable disable
@@ -18,77 +18,89 @@ namespace TriPowersLLC.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("TriPowersLLC.Models.Applicants", b =>
                 {
                     b.Property<int>("id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("AppliedAt");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("id"));
 
                     b.Property<DateTime>("AppliedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("JobId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ResumeText")
-                        .IsRequired();
-
-                    b.Property<string>("city")
-                        .IsRequired();
-
-                    b.Property<string>("country")
-                        .IsRequired();
-
-                    b.Property<string>("email")
-                        .IsRequired();
-
-                    b.Property<string>("firstName")
-                        .IsRequired();
-
-                    b.Property<string>("lastName")
-                        .IsRequired();
-
-                    b.Property<string>("password")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("phone")
-                        .IsRequired();
-
-                    b.Property<string>("state")
-                        .IsRequired();
-
-                    b.Property<string>("streetAddress")
-                        .IsRequired();
-
-                    b.Property<string>("zipCode")
-                        .IsRequired();
-
-                    // JobsApi application fields
-                    b.Property<string>("ResumeUrl")
-                        .IsRequired();
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CoverLetter")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("JobId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LinkedInProfile")
-                        .IsRequired();
-
-                    b.Property<string>("PortfolioUrl")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Message")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PortfolioUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ResumeText")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ResumeUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("city")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("country")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("firstName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("lastName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("password")
+                        .HasColumnType("text");
+
+                    b.Property<string>("phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("state")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("streetAddress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("zipCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasKey("id");
 
@@ -102,58 +114,80 @@ namespace TriPowersLLC.Migrations
             modelBuilder.Entity("TriPowersLLC.Models.Job", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
 
-                    b.Property<string>("Benefits");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApplicantsCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Benefits")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ClosingDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Company")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("EmploymentType")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Location")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<DateTime>("PostedAt");
+                    b.Property<DateTime>("PostedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Requirements")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Responsibilities")
-                        .IsRequired();
-
-                    b.Property<int>("SalaryRangeMax");
-
-                    b.Property<int>("SalaryRangeMin");
-
-                    b.Property<string>("Title")
-                        .IsRequired();
-
-                    // JobsApi fields
-                    b.Property<string>("Company")
-                        .IsRequired();
-
-                    b.Property<string>("Url")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("SalaryRange")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<bool>("IsActive");
+                    b.Property<int>("SalaryRangeMax")
+                        .HasColumnType("integer");
 
-                    b.Property<DateTime>("ClosingDate");
+                    b.Property<int>("SalaryRangeMin")
+                        .HasColumnType("integer");
 
-                    b.Property<int>("Views");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("ApplicantsCount");
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("CreatedAt");
-
-                    b.Property<DateTime>("UpdatedAt");
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("VendorName")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Views")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -163,16 +197,22 @@ namespace TriPowersLLC.Migrations
             modelBuilder.Entity("TriPowersLLC.Models.User", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<byte[]>("PasswordHash")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.Property<byte[]>("PasswordSalt")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.Property<string>("Username")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -189,10 +229,10 @@ namespace TriPowersLLC.Migrations
 
                     b.HasOne("TriPowersLLC.Models.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Job");
+
                     b.Navigation("User");
                 });
 #pragma warning restore 612, 618
