@@ -7,19 +7,19 @@ namespace TriPowersLLC.Models
     public class Applicants
     {
         [Key]
-        public int id { get; set; }
-        public required string firstName { get; set; }
-        public required string lastName { get; set; }
-        public required string email { get; set; }
-        public string? password { get; set; }
-        public required string phone { get; set; }
-        public required string streetAddress { get; set; }
-        public required string city { get; set; }
-        public required string state { get; set; }
-        public required string country { get; set; }
+        public int Id { get; set; }
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
+        public required string FullName { get; set; }
+        public required string Email { get; set; }
+        public string? Password { get; set; }
+        public required string Phone { get; set; }
+        public string? StreetAddress { get; set; }
+        public required  string City { get; set; }
+        public required string State { get; set; }
+        public string? Country { get; set; }
         [Column(TypeName = "varchar(10)")]
-        public required string zipCode { get; set; }
-        public required string ResumeText { get; set; } = null!;
+        public string? ZipCode { get; set; }
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
         public int JobId { get; set; }
         public Job Job { get; set; } = null!;

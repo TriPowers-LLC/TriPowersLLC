@@ -51,6 +51,10 @@ namespace TriPowersLLC.Controllers
                 return Unauthorized(new { message = "Invalid username or password." });
             }
 
+            Console.WriteLine($"User found: {user.Username}, role: {user.Role}");
+            Console.WriteLine($"Stored hash length: {user.PasswordHash?.Length}");
+            Console.WriteLine($"Stored salt length: {user.PasswordSalt?.Length}");
+
             // 2. Verify password
                 using var hmac = new HMACSHA512(user.PasswordSalt);
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
@@ -60,74 +64,72 @@ namespace TriPowersLLC.Controllers
             }
 
             // 3. Generate JWT
-            var tokenResult = GenerateJwtToken(user.Id);
-            if (tokenResult.Result != null)
-            {
-                return tokenResult.Result;
-            }
+            var token = GenerateJwtToken(user);
 
-            var token = tokenResult.Value!;
-
+            
 
             // 4. Return token (and optionally user info)
-            return Ok(new { token, user = new { user.Id, user.Username } });
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.Role
+                }
+            });
         }
 
         // POST /api/users/register
-        [AllowAnonymous] // Allow unauthenticated access for registration
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult> Register(RegisterDto dto)
         {
-            // 1. Check for existing username
             if (await _db.Users.AnyAsync(u => u.Username == dto.Username))
                 return Conflict(new { message = "Username already taken." });
 
-            // 2. Hash password
             using var hmac = new HMACSHA512();
+
             var user = new User
             {
                 Username = dto.Username,
-                PasswordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(dto.Password)),
+                Role = "applicant",
+                PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password)),
                 PasswordSalt = hmac.Key
             };
 
-            // 3. Save user
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
 
-            // 4. Generate JWT
-           var tokenResult = GenerateJwtToken(user.Id);
-            if (tokenResult.Result != null)
+            var token = GenerateJwtToken(user);
+
+            return Ok(new
             {
-                return tokenResult.Result;
-            }
-
-            var token = tokenResult.Value!;
-
-            // 5. Return token (and optionally user info)
-            return Ok(new { token, user = new { user.Id, user.Username } });
+                token,
+                user = new { user.Id, user.Username, user.Role }
+            });
         }
 
         // ----- HELPER -----
-        private ActionResult<string> GenerateJwtToken(int userId)
+       private string GenerateJwtToken(User user)
         {
-            if (string.IsNullOrWhiteSpace(_jwtKey) || Encoding.UTF8.GetByteCount(_jwtKey) < 16)
-            {
-                return Problem(
-                    detail: "The JWT signing key is not properly configured. Ensure 'Jwt:Key' is set and at least 16 bytes when encoded as UTF-8.",
-                    statusCode: StatusCodes.Status500InternalServerError);
-            }
-
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var claims = new[] { new Claim(ClaimTypes.NameIdentifier, userId.ToString()) };
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.Role, user.Role ?? "applicant") // 🔥 IMPORTANT
+            };
+
             var token = new JwtSecurityToken(
-                issuer: null,
-                audience: null,
                 claims: claims,
                 expires: DateTime.UtcNow.AddHours(12),
                 signingCredentials: creds
             );
+
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

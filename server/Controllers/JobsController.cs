@@ -8,7 +8,7 @@ namespace TriPowersLLC.Controllers
 {
     [ApiController]
     [Route("api/admin/jobs")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public class JobsController : ControllerBase
     {
         private readonly JobDBContext _db;
@@ -52,6 +52,8 @@ namespace TriPowersLLC.Controllers
             var response = JobResponse.FromEntity(job);
             return CreatedAtRoute(PublicJobsController.GetJobRouteName, new { id = job.Id }, response);
         }
+
+        
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequest request)

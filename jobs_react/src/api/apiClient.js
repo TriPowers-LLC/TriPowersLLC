@@ -6,12 +6,12 @@ const baseURL = rawBase.endsWith('/api') || rawBase === '/api'
   ? rawBase
   : `${rawBase}/api`;
 
-const api = axios.create({
+const apiClient = axios.create({
    baseURL,
   headers: { 'Content-Type': 'application/json' }
 });
 
-api.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
 
@@ -22,7 +22,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-api.interceptors.response.use(
+apiClient.interceptors.response.use(
   res => res,
   err => {
     const msg =
@@ -33,4 +33,4 @@ api.interceptors.response.use(
   }
 );
 
-export default api;
+export default apiClient;

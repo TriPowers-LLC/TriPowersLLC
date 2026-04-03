@@ -1,11 +1,11 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import api from "../api/apiClient";
+import apiClient from "../api/apiClient";
 
 export const submitApplication = createAsyncThunk(
   "applications/submit",
   async (payload, { rejectWithValue }) => {
     try {
-      const { data } = await api.post("/Applicants", payload);
+      const { data } = await apiClient.post("/Applicants", payload);
       return data;
     } catch (error) {
       return rejectWithValue(error.message || "Unable to submit application");
@@ -17,7 +17,7 @@ export const fetchMyApplications = createAsyncThunk(
   "applications/fetchMine",
   async (_, { rejectWithValue }) => {
     try {
-      const { data } = await api.get("/Applicants/me");
+      const { data } = await apiClient.get("/Applicants/me");
       return data;
     } catch (error) {
       return rejectWithValue(error.message || "Unable to load your applications");
@@ -69,4 +69,4 @@ const applicationsSlice = createSlice({
 });
 
 export const { resetSubmissionState } = applicationsSlice.actions;
-export default applicationsSlice;
+export default applicationsSlice.reducer;

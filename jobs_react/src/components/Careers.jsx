@@ -1,6 +1,6 @@
 // src/components/Careers.jsx
 import { useState, useEffect } from 'react';
-import ApplicantForm from './ApplicantForm';
+import ApplicantForm from './applications/ApplicantForm';
 import apiClient from '../lib/apiClient';
 
 export default function Careers() {

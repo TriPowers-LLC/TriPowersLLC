@@ -1,4 +1,4 @@
-import api from './apiClient';
+import apiClient from './apiClient';
 
-export const postRegister = (creds) => api.post('/users/register', creds);
-export const postLogin    = (creds) => api.post('/users/login', creds);
+export const postRegister = (creds) => apiClient.post('/users/register', creds);
+export const postLogin    = (creds) => apiClient.post('/users/login', creds);

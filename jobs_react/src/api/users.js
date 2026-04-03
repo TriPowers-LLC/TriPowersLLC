@@ -1,8 +1,8 @@
 // src/api/users.js
-import api from './apiClient';
+import apiClient from './apiClient';
 
-export const getMe        = () => api.get('/users/me');
-export const updateMe     = (data) => api.put('/users/me', data);
-export const getUserById  = (id) => api.get(`/users/${id}`);
-export const listUsers    = () => api.get('/users');
-export const deleteUser   = (id) => api.delete(`/users/${id}`);
+export const getMe        = () => apiClient.get('/users/me');
+export const updateMe     = (data) => apiClient.put('/users/me', data);
+export const getUserById  = (id) => apiClient.get(`/users/${id}`);
+export const listUsers    = () => apiClient.get('/users');
+export const deleteUser   = (id) => apiClient.delete(`/users/${id}`);

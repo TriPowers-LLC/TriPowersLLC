@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TriPowersLLC.Models;
@@ -11,9 +12,11 @@ using TriPowersLLC.Models;
 namespace TriPowersLLC.Migrations
 {
     [DbContext(typeof(JobDBContext))]
-    partial class JobDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260402222415_AddUserRoleAndApplicantFields")]
+    partial class AddUserRoleAndApplicantFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
