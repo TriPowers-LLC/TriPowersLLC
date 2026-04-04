@@ -1,6 +1,6 @@
 // src/components/ApplicantForm.jsx
 import { useState, useEffect} from "react";
-import apiClient from "../../lib/apiClient";
+import apiClient from "../../api/apiClient";
 
 export default function ApplicantForm({ jobId, onSubmitted }) {
   const [form, setForm] = useState({
@@ -14,17 +14,13 @@ export default function ApplicantForm({ jobId, onSubmitted }) {
     country: "",
     zipCode: "",
     coverLetter: "",
+    linkedInProfile: "",
+    portfolioUrl: "",
   });
-
   const [selectedFile, setSelectedFile] = useState(null);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (success) {
-      setForm(defaultForm);
-    }
-  }, [success]);
+  const isSuccess = status.includes("submitted");
 
   const handleChange = (e) => {
     setForm((prev) => ({
@@ -131,16 +127,19 @@ export default function ApplicantForm({ jobId, onSubmitted }) {
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      {success && (
-        <p className="text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded">
-          Application submitted! We will reach out soon.
+      {status && (
+        <p
+          className={
+            status.toLowerCase().includes("success") ||
+            status.toLowerCase().includes("submitted")
+              ? "text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded"
+              : "text-red-700 bg-red-50 border border-red-200 px-3 py-2 rounded"
+          }
+        >
+          {status}
         </p>
-      )}
-      {error && (
-        <p className="text-red-700 bg-red-50 border border-red-200 px-3 py-2 rounded">
-          {error}
-        </p>
-      )}
+        
+)}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <input
           type="text"

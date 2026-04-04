@@ -1,9 +1,9 @@
 // src/components/Login.jsx
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { postRegister } from '../api/auth';
-import { loginUser } from '../slices/authSlice';
+import { loginUser, loginSuccess } from '../slices/authSlice';
 
 export default function Login() {
   const [creds, setCreds] = useState({ username: '', password: '' });
@@ -11,6 +11,7 @@ export default function Login() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { loading, error } = useSelector(
     (state) => state.auth ?? { loading: false, error: null }
@@ -21,26 +22,51 @@ export default function Login() {
     setCreds((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleRedirect = (role) => {
+    const from = location.state?.from;
+    const jobId = location.state?.jobId;
+
+    if (role === 'admin') {
+      navigate('/admin', { replace: true });
+      return;
+    }
+
+    if (role === 'applicant' && from === '/careers') {
+      navigate('/careers', {
+        state: { applyJobId: jobId },
+        replace: true,
+      });
+      return;
+    }
+
+    if (role === 'applicant') {
+      navigate('/myapplications', { replace: true });
+      return;
+    }
+
+    navigate('/careers', { replace: true });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
       if (isRegister) {
         const { data } = await postRegister(creds);
-        const token = data?.token || null;
-        const role = data?.role || data?.user?.role || 'admin';
 
-        if (token) {
-          localStorage.setItem('token', token);
-          localStorage.setItem('role', role);
+        const token = data?.token || null;
+        const user = data?.user || null;
+
+        if (token && user) {
+          dispatch(loginSuccess({ token, user }));
         }
 
-        navigate('/admin');
+        handleRedirect(user?.role || 'applicant');
         return;
       }
 
-      await dispatch(loginUser(creds)).unwrap();
-      navigate('/admin');
+      const result = await dispatch(loginUser(creds)).unwrap();
+      handleRedirect(result?.role || 'applicant');
     } catch (err) {
       console.error(err);
     }

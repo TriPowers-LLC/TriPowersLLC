@@ -3,7 +3,7 @@ import apiClient from "./apiClient";
 export const getApplicants = ({ page = 1, search = "", pageSize = 10 } = {}) =>
   apiClient.get("/applicants/admin", { params: { page, search, pageSize } });
 
-export const getJobs = () => apiClient.get("/api/public/jobs");
+export const getJobs = () => apiClient.get("/public/jobs");
 
 export const createJob = (payload) => apiClient.post("/admin/jobs", payload);
 

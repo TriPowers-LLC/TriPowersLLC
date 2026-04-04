@@ -49,10 +49,7 @@ builder.Services
     });
 
 // 1. EF Core
-var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? Environment.GetEnvironmentVariable("DEFAULT_CONNECTION")
-    ?? Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 if (string.IsNullOrWhiteSpace(connectionString))
     throw new InvalidOperationException("Missing connection string 'DefaultConnection'.");
@@ -250,7 +247,7 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 Console.WriteLine($"app env: {app.Environment.EnvironmentName}");
-using (var scope = app.Services.CreateScope())
+/* using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<JobDBContext>();
 
@@ -324,7 +321,7 @@ using (var scope = app.Services.CreateScope())
 
     Console.WriteLine("✅ Admin user seeded: admin / Password123!");
     Console.WriteLine($"Users in DB: {db.Users.Count()}");
-}
+} */
 
 app.Run();
 
