@@ -1,6 +1,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/uploads")]
@@ -42,13 +43,43 @@ public class UploadsController : ControllerBase
         return Ok(new
         {
             uploadUrl = url,
-            objectKey
+            objectKey,
+            fileUrl = $"https://{bucket}.s3.amazonaws.com/{objectKey}"
         });
+    }
+
+    [HttpGet("presign-download")]
+    [Authorize(Roles = "admin,applicant")]
+    public IActionResult CreatePresignedDownloadUrl([FromQuery] PresignDownloadRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.ObjectKey))
+            return BadRequest("Object key is required.");
+
+        var bucket = _config["S3_BUCKET"];
+        if (string.IsNullOrWhiteSpace(bucket))
+            return StatusCode(500, "S3 bucket is not configured.");
+
+        var presignRequest = new GetPreSignedUrlRequest
+        {
+            BucketName = bucket,
+            Key = request.ObjectKey,
+            Verb = HttpVerb.GET,
+            Expires = DateTime.UtcNow.AddMinutes(10)
+        };
+
+        var url = _s3.GetPreSignedURL(presignRequest);
+
+        return Ok(new { downloadUrl = url });
     }
 
     public class PresignUploadRequest
     {
         public string FileName { get; set; } = "";
         public string? ContentType { get; set; }
+    }
+
+    public class PresignDownloadRequest
+    {
+        public string ObjectKey { get; set; } = "";
     }
 }

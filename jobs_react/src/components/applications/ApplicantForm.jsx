@@ -77,7 +77,7 @@ export default function ApplicantForm({ jobId, onSubmitted }) {
 
       // 3) Build resume URL
       // Prefer fileUrl from backend if you return it there.
-      const resumeUrl = fileUrl || objectKey;
+      const resumeUrl = objectKey;
 
       // 4) Submit application to your ApplicantsController endpoint
       await apiClient.post(`/applicants/jobs/${jobId}`, {

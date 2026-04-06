@@ -12,3 +12,8 @@ export const updateJob = (id, payload) => apiClient.put(`/admin/jobs/${id}`, pay
 export const deleteJob = (id) => apiClient.delete(`/admin/jobs/${id}`);
 
 export const getJobById = (id) => apiClient.get(`/public/jobs/${id}`);
+
+export const getResumeDownloadUrl = (objectKey) =>
+  apiClient.get("/uploads/presign-download", {
+    params: { objectKey },
+  });
