@@ -13,7 +13,17 @@ export const deleteJob = (id) => apiClient.delete(`/admin/jobs/${id}`);
 
 export const getJobById = (id) => apiClient.get(`/public/jobs/${id}`);
 
-export const getResumeDownloadUrl = (objectKey) =>
-  apiClient.get("/uploads/presign-download", {
-    params: { objectKey },
-  });
+export const getMyResumeDownloadUrl = (applicationId) =>
+  apiClient.get(`/uploads/applications/${applicationId}/resume`);
+
+export const getResumeDownloadUrl = (applicationId) =>
+  apiClient.get(`/uploads/applications/${applicationId}/resume`);
+
+export const createResumeReplaceUrl = (applicationId, payload) =>
+  apiClient.post(`/uploads/applications/${applicationId}/resume/presign-replace`, payload);
+
+export const confirmResumeReplace = (applicationId, objectKey) =>
+  apiClient.put(`/uploads/applications/${applicationId}/resume`, { objectKey });
+
+export const deleteResume = (applicationId) =>
+  apiClient.delete(`/uploads/applications/${applicationId}/resume`);

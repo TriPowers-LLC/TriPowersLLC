@@ -164,7 +164,6 @@ namespace TriPowersLLC.Controllers
         public string State { get; set; } = string.Empty;
         public string Country { get; set; } = string.Empty;
         public string ZipCode { get; set; } = string.Empty;
-
         public string ResumeUrl { get; set; } = string.Empty;
         public string CoverLetter { get; set; } = string.Empty;
         public string LinkedInProfile { get; set; } = string.Empty;

@@ -33,12 +33,12 @@ const getPreferredApiOrigin = () => {
   const apiBase = normalizeApiOrigin(readEnvUrl('VITE_API_BASE_URL'));
   const jobsApiBase = normalizeApiOrigin(readEnvUrl('VITE_JOBS_API_BASE_URL'));
 
-  if (jobsApiBase && !isLegacyApiUrl(jobsApiBase)) {
-    return jobsApiBase;
-  }
-
   if (apiBase && !isLegacyApiUrl(apiBase)) {
     return apiBase;
+  }
+
+  if (jobsApiBase && !isLegacyApiUrl(jobsApiBase)) {
+    return jobsApiBase;
   }
 
   return '/api';

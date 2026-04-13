@@ -140,3 +140,5 @@ functions.zip
 .vs/TriPowersLLC/CopilotIndices/17.14.827.52834/CodeChunks.db
 jobs_react/.env.production
 server/appsettings.json
+server/appsettings.Development.json
+server/appsettings.Production.json
