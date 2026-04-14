@@ -57,37 +57,69 @@ public class UploadsController : ControllerBase
     [Authorize(Roles = "admin,applicant")]
     public async Task<IActionResult> GetResumeDownloadUrl(int applicationId)
     {
-        var applicant = await _db.Applicants
-            .FirstOrDefaultAsync(a => a.Id == applicationId);
-
-        if (applicant == null)
-            return NotFound("Application not found.");
-
-        if (!User.IsInRole("admin"))
+        try
         {
-            var userId = GetUserId();
-            if (!userId.HasValue || applicant.UserId != userId.Value)
-                return Forbid();
+            var applicant = await _db.Applicants
+                .FirstOrDefaultAsync(a => a.Id == applicationId);
+
+            if (applicant == null)
+                return NotFound("Application not found.");
+
+            if (!User.IsInRole("admin"))
+            {
+                var userId = GetUserId();
+                if (!userId.HasValue || applicant.UserId != userId.Value)
+                    return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(applicant.ResumeUrl))
+                return NotFound("Resume not found.");
+
+            var bucket = _config["S3_BUCKET"] ?? _config["S3_Bucket"];
+            if (string.IsNullOrWhiteSpace(bucket))
+                return StatusCode(500, "S3 bucket is not configured.");
+
+            var storedResumeValue = applicant.ResumeUrl.Trim();
+
+            var objectKey = storedResumeValue.Contains(".amazonaws.com/")
+                ? storedResumeValue.Split(".amazonaws.com/")[1]
+                : storedResumeValue;
+
+            if (string.IsNullOrWhiteSpace(objectKey))
+                return StatusCode(500, new
+                {
+                    error = "Resume object key could not be determined.",
+                    storedResumeValue
+                });
+
+            var presignRequest = new GetPreSignedUrlRequest
+            {
+                BucketName = bucket,
+                Key = objectKey,
+                Verb = HttpVerb.GET,
+                Expires = DateTime.UtcNow.AddMinutes(10)
+            };
+
+            Console.WriteLine($"Bucket: {bucket}");
+            Console.WriteLine($"Stored ResumeUrl: {storedResumeValue}");
+            Console.WriteLine($"Object Key: {objectKey}");
+            var url = _s3.GetPreSignedURL(presignRequest);
+
+            return Ok(new
+            {
+                downloadUrl = url,
+                objectKey
+            });
         }
-
-        if (string.IsNullOrWhiteSpace(applicant.ResumeUrl))
-            return NotFound("Resume not found.");
-
-        var bucket = _config["S3_BUCKET"];
-        if (string.IsNullOrWhiteSpace(bucket))
-            return StatusCode(500, "S3 bucket is not configured.");
-
-        var presignRequest = new GetPreSignedUrlRequest
+        catch (Exception ex)
         {
-            BucketName = bucket,
-            Key = applicant.ResumeUrl,
-            Verb = HttpVerb.GET,
-            Expires = DateTime.UtcNow.AddMinutes(10)
-        };
-
-        var url = _s3.GetPreSignedURL(presignRequest);
-
-        return Ok(new { downloadUrl = url });
+            return StatusCode(500, new
+            {
+                error = "Failed to generate resume download URL.",
+                detail = ex.Message,
+                inner = ex.InnerException?.Message
+            });
+        }
     }
 
     [HttpPost("applications/{applicationId:int}/resume/presign-replace")]

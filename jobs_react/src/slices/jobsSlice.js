@@ -2,6 +2,12 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import apiClient from '../api/apiClient';
 import { createJob, deleteJob, updateJob } from '../api/adminApi';
 
+const getErrorMessage = (error, fallback) =>
+  error?.response?.data?.error ||
+  error?.response?.data?.message ||
+  error?.message ||
+  fallback;
+
 export const fetchJobs = createAsyncThunk(
   'jobs/fetchAll',
   async (_, { rejectWithValue }) => {
@@ -9,7 +15,7 @@ export const fetchJobs = createAsyncThunk(
       const { data } = await apiClient.get('/public/jobs');
       return data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Unable to load jobs');
+      return rejectWithValue(getErrorMessage(error, 'Unable to load jobs'));
     }
   }
 );
@@ -21,7 +27,7 @@ export const fetchJobById = createAsyncThunk(
       const { data } = await apiClient.get(`/public/jobs/${id}`);
       return data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Unable to load the job');
+      return rejectWithValue(getErrorMessage(error, 'Unable to load the job'));
     }
   }
 );
@@ -33,7 +39,7 @@ export const createJobThunk = createAsyncThunk(
       const { data } = await createJob(payload);
       return data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Unable to create the job');
+      return rejectWithValue(getErrorMessage(error, 'Unable to create the job'));
     }
   }
 );
@@ -45,7 +51,7 @@ export const updateJobThunk = createAsyncThunk(
       await updateJob(id, payload);
       return { id, ...payload };
     } catch (error) {
-      return rejectWithValue(error.message || 'Unable to update the job');
+      return rejectWithValue(getErrorMessage(error, 'Unable to update the job'));
     }
   }
 );
@@ -57,7 +63,7 @@ export const deleteJobThunk = createAsyncThunk(
       await deleteJob(id);
       return id;
     } catch (error) {
-      return rejectWithValue(error.message || 'Unable to delete the job');
+      return rejectWithValue(getErrorMessage(error, 'Unable to delete the job'));
     }
   }
 );
@@ -81,7 +87,7 @@ const jobsSlice = createSlice({
       })
       .addCase(fetchJobs.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.list = action.payload;
+        state.list = Array.isArray(action.payload) ? action.payload : [];
       })
       .addCase(fetchJobs.rejected, (state, action) => {
         state.status = 'failed';

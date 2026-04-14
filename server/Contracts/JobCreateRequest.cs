@@ -32,5 +32,7 @@ namespace TriPowersLLC.Contracts
         public int SalaryRangeMax { get; set; }
 
         public string? Benefits { get; set; }
+
+        public string? Status { get; set; }
     }
 }

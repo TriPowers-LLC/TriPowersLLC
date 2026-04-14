@@ -26,8 +26,8 @@ export default function Login() {
     const from = location.state?.from;
     const jobId = location.state?.jobId;
 
-    if (role === 'admin') {
-      navigate('/admin', { replace: true });
+    if (role === "admin") {
+      navigate("/admin", { replace: true });
       return;
     }
 

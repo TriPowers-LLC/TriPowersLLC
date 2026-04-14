@@ -13,9 +13,53 @@ namespace TriPowersLLC.Controllers
     {
         private readonly JobDBContext _db;
 
+        private static readonly HashSet<string> AllowedStatuses = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "draft",
+            "active",
+            "closed"
+        };
+
+        private static string NormalizeStatus(string? status)
+        {
+            return string.IsNullOrWhiteSpace(status)
+                ? "active"
+                : status.Trim().ToLowerInvariant();
+        }
+
         public JobsController(JobDBContext db)
         {
             _db = db;
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<object>>> GetAll()
+        {
+            var jobs = await _db.Jobs
+                .OrderByDescending(j => j.UpdatedAt)
+                .Select(j => new
+                {
+                    j.Id,
+                    j.Title,
+                    j.Description,
+                    j.Requirements,
+                    j.Responsibilities,
+                    j.Location,
+                    j.EmploymentType,
+                    j.VendorName,
+                    j.SalaryRangeMin,
+                    j.SalaryRangeMax,
+                    j.Benefits,
+                    j.PostedAt,
+                    j.CreatedAt,
+                    j.UpdatedAt,
+                    j.Status,
+                    j.Views,
+                    applicantsCount = _db.Applicants.Count(a => a.JobId == j.Id)
+                })
+                .ToListAsync();
+
+            return Ok(jobs);
         }
 
         [HttpPost]
@@ -24,6 +68,13 @@ namespace TriPowersLLC.Controllers
             if (request.SalaryRangeMin > request.SalaryRangeMax)
             {
                 return BadRequest(new { error = "SalaryRangeMin cannot exceed SalaryRangeMax." });
+            }
+
+            var status = NormalizeStatus(request.Status);
+
+            if (!AllowedStatuses.Contains(status))
+            {
+                return BadRequest(new { error = "Invalid job status. Allowed values: draft, active, closed." });
             }
 
             var job = new Job
@@ -41,7 +92,8 @@ namespace TriPowersLLC.Controllers
                 PostedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                IsActive = true,
+                Status = status,
+                IsActive = status == "active",
                 Views = 0,
                 ApplicantsCount = 0
             };
@@ -52,8 +104,6 @@ namespace TriPowersLLC.Controllers
             var response = JobResponse.FromEntity(job);
             return CreatedAtRoute(PublicJobsController.GetJobRouteName, new { id = job.Id }, response);
         }
-
-        
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] JobUpdateRequest request)
@@ -69,6 +119,13 @@ namespace TriPowersLLC.Controllers
                 return NotFound();
             }
 
+            var status = NormalizeStatus(request.Status);
+
+            if (!AllowedStatuses.Contains(status))
+            {
+                return BadRequest(new { error = "Invalid job status. Allowed values: draft, active, closed." });
+            }
+
             job.Title = request.Title;
             job.Description = request.Description;
             job.Requirements = request.Requirements;
@@ -79,6 +136,8 @@ namespace TriPowersLLC.Controllers
             job.SalaryRangeMin = request.SalaryRangeMin;
             job.SalaryRangeMax = request.SalaryRangeMax;
             job.Benefits = request.Benefits;
+            job.Status = status;
+            job.IsActive = status == "active";
             job.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();

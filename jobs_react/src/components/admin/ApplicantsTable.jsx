@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchApplicants, setPage, setSearch } from "../../slices/applicantsSlice";
-import { getResumeDownloadUrl } from "../../api/adminApi";
+import { getResumeDownloadUrl, updateApplicantStatus } from "../../api/adminApi";
 
-const ApplicantsTable = () => {
+const ApplicantsTable = ({ jobId }) => {
   const dispatch = useDispatch();
   const { list = [], loading, error, page, pageSize, search } = useSelector(
     (state) => state.applicants || {}
@@ -11,9 +11,11 @@ const ApplicantsTable = () => {
 
   const [selectedApplicant, setSelectedApplicant] = useState(null);
 
+  const [statusFilter, setStatusFilter] = useState("");
+
   useEffect(() => {
-    dispatch(fetchApplicants({ page, search, pageSize }));
-  }, [dispatch, page, search, pageSize]);
+    dispatch(fetchApplicants({ page, search, pageSize, jobId, status: statusFilter }));
+  }, [dispatch, page, search, pageSize, jobId, statusFilter]);
 
   const hasData = useMemo(() => Array.isArray(list) && list.length > 0, [list]);
 
@@ -23,23 +25,52 @@ const ApplicantsTable = () => {
     applicant.name ||
     "Unknown Applicant";
 
- const handleOpenResume = async (resumeUrlOrKey) => {
-  try {
-    const objectKey = resumeUrlOrKey.includes(".amazonaws.com/")
-      ? resumeUrlOrKey.split(".amazonaws.com/")[1]
-      : resumeUrlOrKey;
-
-    const res = await getResumeDownloadUrl(objectKey);
-
-    const url = res.data?.downloadUrl;
-    if (url) {
-      window.open(url, "_blank", "noopener,noreferrer");
+  const getStatusClass = (status) => {
+    switch ((status || "").toLowerCase()) {
+      case "hired":
+        return "bg-green-100 text-green-700";
+      case "rejected":
+        return "bg-red-100 text-red-700";
+      case "interviewed":
+        return "bg-blue-100 text-blue-700";
+      case "reviewing":
+        return "bg-yellow-100 text-yellow-700";
+      default:
+        return "bg-gray-100 text-gray-700";
     }
-  } catch (err) {
-    console.error(err);
-    alert(err.message || "Failed to open resume.");
-  }
-};
+  };
+
+ const handleOpenResume = async (applicationId) => {
+    try {
+      const res = await getResumeDownloadUrl(applicationId);
+
+      const url = res.data?.downloadUrl;
+      if (url) {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+    } catch (err) {
+      console.error("Resume error:", err);
+      console.error("Resume detail:", err.detail);
+      console.error("Resume inner:", err.inner);
+      console.error("Resume response data:", err.responseData);
+
+      alert(err.detail || err.message || "Failed to open resume.");
+    }
+  };
+
+  const selectedApplicantId = selectedApplicant?.id;
+
+  const handleStatusChange = async (id, status) => {
+    try {
+      await updateApplicantStatus(id, { status });
+
+      // refresh data
+      dispatch(fetchApplicants({ page, search, pageSize, jobId, status: statusFilter }));
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to update status");
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -53,11 +84,28 @@ const ApplicantsTable = () => {
         />
         <button
           className="px-3 py-2 bg-gray-100 border rounded"
-          onClick={() => dispatch(fetchApplicants({ page: 1, search, pageSize }))}
+          onClick={() => dispatch(fetchApplicants({ page: 1, search, pageSize, jobId, status: statusFilter }))}
         >
           Search
         </button>
       </div>
+
+      <select
+        value={statusFilter}
+        onChange={(e) => {
+          setStatusFilter(e.target.value);
+          dispatch(setPage(1));
+        }}
+        className="border px-2 py-2 rounded"
+      >
+        <option value="">All Statuses</option>
+        <option value="submitted">Submitted</option>
+        <option value="reviewing">Reviewing</option>
+        <option value="interviewed">Interviewed</option>
+        <option value="offered">Offered</option>
+        <option value="hired">Hired</option>
+        <option value="rejected">Rejected</option>
+      </select>
 
       {loading && <p>Loading applicants...</p>}
       {error && <p className="text-red-500">{error}</p>}
@@ -80,12 +128,25 @@ const ApplicantsTable = () => {
                 <td className="p-2">{getApplicantName(applicant)}</td>
                 <td className="p-2">{applicant.email || "-"}</td>
                 <td className="p-2">{applicant.job?.title || "-"}</td>
-                <td className="p-2">{applicant.status || "Submitted"}</td>
+                <td className="p-2">
+                  <select
+                    value={(applicant.status || "submitted").toLowerCase()}
+                    onChange={(e) => handleStatusChange(applicant.id, e.target.value)}
+                    className="border rounded px-2 py-1 text-sm"
+                  >
+                    <option value="submitted">Submitted</option>
+                    <option value="reviewing">Reviewing</option>
+                    <option value="interviewed">Interviewed</option>
+                    <option value="offered">Offered</option>
+                    <option value="hired">Hired</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                </td>
                 <td className="p-2">
                   {applicant.resumeUrl ? (
                     <button
                       type="button"
-                      onClick={() => handleOpenResume(applicant.resumeUrl)}
+                      onClick={() => handleOpenResume(applicant.id)}
                       className="text-blue-600 underline"
                     >
                       Open Resume
@@ -226,7 +287,7 @@ const ApplicantsTable = () => {
               {selectedApplicant.resumeUrl && (
                 <button
                   type="button"
-                  onClick={() => handleOpenResume(selectedApplicant.resumeUrl)}
+                  onClick={() => handleOpenResume(selectedApplicantId)}
                   className="text-blue-600 underline"
                 >
                   Open Resume

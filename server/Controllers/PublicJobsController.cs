@@ -22,7 +22,7 @@ namespace TriPowersLLC.Controllers
         public async Task<ActionResult<IEnumerable<JobResponse>>> GetAll()
         {
             var jobs = await _db.Jobs
-                .Where(j => j.IsActive)
+                .Where(j => j.Status == "active")
                 .OrderByDescending(j => j.PostedAt)
                 .ToListAsync();
 
@@ -32,7 +32,7 @@ namespace TriPowersLLC.Controllers
         [HttpGet("{id}", Name = GetJobRouteName)]
         public async Task<ActionResult<JobResponse>> GetById(int id)
         {
-            var job = await _db.Jobs.FirstOrDefaultAsync(j => j.Id == id && j.IsActive);
+            var job = await _db.Jobs.FirstOrDefaultAsync(j => j.Id == id && j.Status == "active");
 
             if (job is null)
             {

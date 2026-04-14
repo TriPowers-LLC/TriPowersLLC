@@ -1,10 +1,12 @@
 using Amazon;
 using Amazon.S3;
+using Amazon.Runtime;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Text;
+using System.Security.Claims;
 using TriPowersLLC.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,19 +64,20 @@ builder.Services.AddHttpClient("openai", client =>
 });
 
 // AWS S3
-var awsRegion =
-    builder.Configuration["AWS:Region"] ??
-    builder.Configuration["AWS_REGION"] ??
-    "us-east-1";
+var awsAccessKey = builder.Configuration["AWS_ACCESS_KEY_ID"];
+var awsSecretKey = builder.Configuration["AWS_SECRET_ACCESS_KEY"];
+var awsRegion = builder.Configuration["AWS_REGION"] ?? "us-east-1";
+
+if (string.IsNullOrWhiteSpace(awsAccessKey) || string.IsNullOrWhiteSpace(awsSecretKey))
+{
+    throw new InvalidOperationException("AWS credentials are not configured.");
+}
 
 builder.Services.AddSingleton<IAmazonS3>(_ =>
 {
-    var s3Config = new AmazonS3Config
-    {
-        RegionEndpoint = RegionEndpoint.GetBySystemName(awsRegion)
-    };
-
-    return new AmazonS3Client(s3Config);
+    var credentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+    var region = RegionEndpoint.GetBySystemName(awsRegion);
+    return new AmazonS3Client(credentials, region);
 });
 
 // CORS

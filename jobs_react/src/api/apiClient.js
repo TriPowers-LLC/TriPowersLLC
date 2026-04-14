@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { getApiBaseUrl } from './baseUrls';
 
+
 const rawBase = getApiBaseUrl().replace(/\/+$/, '');
 const baseURL = rawBase.endsWith('/api') || rawBase === '/api'
   ? rawBase
@@ -23,13 +24,20 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  res => res,
-  err => {
-    const msg =
+  (res) => res,
+  (err) => {
+    const error = new Error(
       err?.response?.data?.error ||
       err?.response?.data?.message ||
-      err?.message || 'Request failed';
-    return Promise.reject(new Error(msg));
+      err?.message ||
+      "Request failed"
+    );
+
+    error.detail = err?.response?.data?.detail;
+    error.inner = err?.response?.data?.inner;
+    error.responseData = err?.response?.data;
+
+    return Promise.reject(error);
   }
 );
 

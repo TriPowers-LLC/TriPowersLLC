@@ -8,9 +8,11 @@ const JobCard = ({ job }) => {
 
   return (
     <div className="border rounded-lg shadow-sm p-4 flex flex-col gap-2 bg-white">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h3 className="text-xl font-semibold text-blue-900">{job.title}</h3>
-        <span className="text-sm text-slate-600">{job.employmentType || "N/A"}</span>
+        <span className="text-sm text-slate-600">
+          {job.employmentType || "N/A"}
+        </span>
       </div>
 
       <p className="text-sm text-slate-600">
@@ -47,7 +49,9 @@ const JobList = () => {
     error = null,
   } = useSelector((state) => state.jobs || {});
 
-  const jobs = Array.isArray(list) ? list : [];
+  const jobs = Array.isArray(list)
+    ? list.filter((job) => (job.status || "").toLowerCase() === "active")
+    : [];
 
   useEffect(() => {
     if (status === "idle") {
@@ -67,7 +71,9 @@ const JobList = () => {
       )}
 
       {status === "failed" && (
-        <p className="text-center text-red-600">{error || "Failed to load jobs."}</p>
+        <p className="text-center text-red-600">
+          {error || "Failed to load jobs."}
+        </p>
       )}
 
       {status === "succeeded" && jobs.length === 0 && (

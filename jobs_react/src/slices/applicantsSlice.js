@@ -1,6 +1,12 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getApplicants } from '../api/adminApi';
 
+const getErrorMessage = (error) =>
+  error?.response?.data?.error ||
+  error?.response?.data?.message ||
+  error?.message ||
+  'Failed to fetch applicants';
+
 export const fetchApplicants = createAsyncThunk(
   'applicants/fetch',
   async (params, { rejectWithValue }) => {
@@ -8,7 +14,7 @@ export const fetchApplicants = createAsyncThunk(
       const { data } = await getApplicants(params);
       return data;
     } catch (error) {
-      return rejectWithValue(error.message || 'Failed to fetch applicants');
+      return rejectWithValue(getErrorMessage(error));
     }
   }
 );
@@ -43,13 +49,14 @@ const applicantsSlice = createSlice({
       })
       .addCase(fetchApplicants.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload.items || action.payload.data || action.payload || [];
-        state.total = action.payload.total || action.payload.length || 0;
-        state.pageSize = action.payload.pageSize || state.pageSize;
+        state.list = Array.isArray(action.payload?.items) ? action.payload.items : [];
+        state.total = action.payload?.total ?? 0;
+        state.page = action.payload?.page ?? state.page;
+        state.pageSize = action.payload?.pageSize ?? state.pageSize;
       })
       .addCase(fetchApplicants.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error = action.payload || 'Failed to fetch applicants';
       });
   },
 });

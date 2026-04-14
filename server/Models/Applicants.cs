@@ -25,6 +25,7 @@ namespace TriPowersLLC.Models
         public Job Job { get; set; } = null!;
         public int? UserId { get; set; }
         public User? User { get; set; }
+        public string Status { get; set; } = "submitted";
 
 
         // JobsApi application fields

@@ -102,7 +102,9 @@ namespace TriPowersLLC.Controllers
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
-            [FromQuery] string search = "")
+            [FromQuery] string search = "",
+            [FromQuery] int? jobId = null,
+            [FromQuery] string? status = null)
         {
             var query = _db.Applicants
                 .Include(a => a.Job)
@@ -114,6 +116,17 @@ namespace TriPowersLLC.Controllers
                     a.FullName.Contains(search) ||
                     a.Email.Contains(search) ||
                     a.Phone.Contains(search));
+            }
+
+            if (jobId.HasValue)
+            {
+                query = query.Where(a => a.JobId == jobId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                var normalizedStatus = status.Trim().ToLower();
+                query = query.Where(a => (a.Status ?? "submitted").ToLower() == normalizedStatus);
             }
 
             var total = await query.CountAsync();
@@ -131,6 +144,31 @@ namespace TriPowersLLC.Controllers
                 page,
                 pageSize
             });
+        }
+
+        [HttpPatch("admin/{id}/status")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateApplicationStatusDto dto)
+        {
+            var app = await _db.Applicants.FirstOrDefaultAsync(a => a.Id == id);
+
+            if (app == null)
+            {
+                return NotFound(new { error = "Application not found." });
+            }
+
+            var allowedStatuses = new[] { "submitted", "reviewing", "interviewed", "offered", "hired", "rejected" };
+            var normalizedStatus = (dto.Status ?? "").Trim().ToLower();
+
+            if (!allowedStatuses.Contains(normalizedStatus))
+            {
+                return BadRequest(new { error = "Invalid status." });
+            }
+
+            app.Status = normalizedStatus;
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Application status updated.", status = app.Status });
         }
 
         // =========================
@@ -168,5 +206,10 @@ namespace TriPowersLLC.Controllers
         public string CoverLetter { get; set; } = string.Empty;
         public string LinkedInProfile { get; set; } = string.Empty;
         public string PortfolioUrl { get; set; } = string.Empty;
+    }
+
+    public class UpdateApplicationStatusDto
+    {
+        public string Status { get; set; } = string.Empty;
     }
 }

@@ -1,9 +1,22 @@
 import apiClient from "./apiClient";
 
-export const getApplicants = ({ page = 1, search = "", pageSize = 10 } = {}) =>
-  apiClient.get("/applicants/admin", { params: { page, search, pageSize } });
+export const getApplicants = ({
+  page = 1,
+  search = "",
+  pageSize = 10,
+  jobId,
+  status,
+} = {}) =>
+  apiClient.get("/applicants/admin", {
+    params: { page, search, pageSize, jobId, status },
+  });
 
-export const getJobs = () => apiClient.get("/public/jobs");
+export const updateApplicantStatus = (id, payload) =>
+  apiClient.patch(`/applicants/admin/${id}/status`, payload);
+
+export const getAdminJobs = () => apiClient.get("/admin/jobs");
+
+export const getPublicJobs = () => apiClient.get("/public/jobs");
 
 export const createJob = (payload) => apiClient.post("/admin/jobs", payload);
 

@@ -8,10 +8,11 @@ const emptyJob = {
   responsibilities: "",
   location: "",
   employmentType: "",
-  vendorName: "",
+  vendorName: "TriPowers LLC",
   salaryRangeMin: "",
   salaryRangeMax: "",
   benefits: "",
+  status: "active",
 };
 
 const JobEditor = ({ job, onSave, onCancel }) => {
@@ -24,6 +25,9 @@ const JobEditor = ({ job, onSave, onCancel }) => {
     setForm(job || emptyJob);
   }, [job]);
 
+  const [activeView, setActiveView] = useState("jobs"); 
+// "jobs" | "create" | "applicants" | "generator"
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave?.(form);
@@ -64,10 +68,6 @@ const JobEditor = ({ job, onSave, onCancel }) => {
 
   return (
     <div className="border rounded p-4 space-y-4 bg-white">
-      <h3 className="text-lg font-semibold">
-        {job?.id ? "Edit Job" : "Create Job"}
-      </h3>
-
       {!job?.id && (
         <div className="border rounded p-3 bg-gray-50 space-y-3">
           <h4 className="font-medium">Generate with AI</h4>
@@ -121,9 +121,22 @@ const JobEditor = ({ job, onSave, onCancel }) => {
         </label>
 
         <label className="block">
+          <span className="text-sm">Status</span>
+          <select
+            value={form.status || "active"}
+            onChange={(e) => setForm({ ...form, status: e.target.value })}
+            className="border px-3 py-2 rounded w-full"
+          >
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="closed">Closed</option>
+          </select>
+        </label>
+
+        <label className="block">
           <span className="text-sm">Vendor Name</span>
           <input
-            value={form.vendorName || "TriPowers LLC"}
+            value={form.vendorName}
             onChange={(e) => setForm({ ...form, vendorName: e.target.value })}
             className="border px-3 py-2 rounded w-full"
           />

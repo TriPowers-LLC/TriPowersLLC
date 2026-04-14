@@ -3,6 +3,10 @@ import { postLogin } from '../api/auth';
 
 const tokenFromStorage = () => localStorage.getItem('token') || null;
 const roleFromStorage = () => localStorage.getItem('role') || null;
+const userFromStorage = () => {
+  const raw = localStorage.getItem('user');
+  return raw ? JSON.parse(raw) : null;
+};
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -16,6 +20,7 @@ export const loginUser = createAsyncThunk(
       if (token) {
         localStorage.setItem('token', token);
         localStorage.setItem('role', role);
+        localStorage.setItem('user', JSON.stringify(user));
       }
 
       return { token, role, user };
@@ -28,7 +33,7 @@ export const loginUser = createAsyncThunk(
 const initialState = {
   token: tokenFromStorage(),
   role: roleFromStorage(),
-  user: null,
+  user: userFromStorage(),
   isAuthenticated: !!tokenFromStorage(),
   loading: false,
   error: null,
@@ -50,6 +55,7 @@ const authSlice = createSlice({
 
       localStorage.setItem('token', token);
       localStorage.setItem('role', role);
+      localStorage.setItem('user', JSON.stringify(user));
     },
     logout(state) {
       state.token = null;
@@ -60,6 +66,7 @@ const authSlice = createSlice({
 
       localStorage.removeItem('token');
       localStorage.removeItem('role');
+      localStorage.removeItem('user');
     },
   },
   extraReducers: (builder) => {
@@ -74,6 +81,7 @@ const authSlice = createSlice({
         state.role = action.payload.role;
         state.user = action.payload.user;
         state.isAuthenticated = !!action.payload.token;
+        state.error = null;
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
