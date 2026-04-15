@@ -2,11 +2,13 @@ using Amazon;
 using Amazon.S3;
 using Amazon.Runtime;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
 using System.Text;
 using System.Security.Claims;
+using TriPowersLLC.Auth;
 using TriPowersLLC.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,6 +43,21 @@ builder.Services
             NameClaimType = ClaimTypes.Name
         };
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AuthPolicies.Applicant, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireAssertion(context => AuthPolicies.HasRole(context.User, "applicant")));
+
+    options.AddPolicy(AuthPolicies.Admin, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireAssertion(context => AuthPolicies.HasRole(context.User, "admin")));
+
+    options.AddPolicy(AuthPolicies.ApplicantOrAdmin, policy =>
+        policy.RequireAuthenticatedUser()
+              .RequireAssertion(context => AuthPolicies.HasRole(context.User, "applicant", "admin")));
+});
 
 // Database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

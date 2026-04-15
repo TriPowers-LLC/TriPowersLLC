@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using TriPowersLLC.Auth;
 
 namespace TriPowersLLC.Controllers
 {
@@ -76,7 +77,7 @@ namespace TriPowersLLC.Controllers
                 {
                     user.Id,
                     user.Username,
-                    user.Role
+                    Role = AuthPolicies.NormalizeRole(user.Role)
                 }
             });
         }
@@ -107,7 +108,12 @@ namespace TriPowersLLC.Controllers
             return Ok(new
             {
                 token,
-                user = new { user.Id, user.Username, user.Role }
+                user = new
+                {
+                    user.Id,
+                    user.Username,
+                    Role = AuthPolicies.NormalizeRole(user.Role)
+                }
             });
         }
 
@@ -121,7 +127,7 @@ namespace TriPowersLLC.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role ?? "applicant") // 🔥 IMPORTANT
+                new Claim(ClaimTypes.Role, AuthPolicies.NormalizeRole(user.Role))
             };
 
             var token = new JwtSecurityToken(

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
+using TriPowersLLC.Auth;
 using TriPowersLLC.Models;
 
 namespace TriPowersLLC.Controllers
@@ -17,17 +17,13 @@ namespace TriPowersLLC.Controllers
             _db = db;
         }
 
-        private int? GetUserId()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            return int.TryParse(userId, out var parsed) ? parsed : null;
-        }
+        private int? GetUserId() => AuthPolicies.GetUserId(User);
 
         // =========================
         // APPLICANT: Submit Application
         // =========================
         [HttpPost("jobs/{jobId}")]
-        [Authorize(Roles = "applicant")]
+        [Authorize(Policy = AuthPolicies.Applicant)]
         public async Task<IActionResult> Apply(int jobId, [FromBody] CreateApplicationDto dto)
         {
             var job = await _db.Jobs.FirstOrDefaultAsync(j => j.Id == jobId && j.IsActive);
@@ -76,7 +72,7 @@ namespace TriPowersLLC.Controllers
         // USER: My Applications
         // =========================
         [HttpGet("me")]
-        [Authorize(Roles = "applicant")]
+        [Authorize(Policy = AuthPolicies.Applicant)]
         public async Task<ActionResult<IEnumerable<Applicants>>> GetMyApplications()
         {
             var userId = GetUserId();
@@ -98,7 +94,7 @@ namespace TriPowersLLC.Controllers
         // ADMIN: All Applications
         // =========================
         [HttpGet("admin")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Policy = AuthPolicies.Admin)]
         public async Task<IActionResult> GetAll(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10,
@@ -147,7 +143,7 @@ namespace TriPowersLLC.Controllers
         }
 
         [HttpPatch("admin/{id}/status")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Policy = AuthPolicies.Admin)]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] UpdateApplicationStatusDto dto)
         {
             var app = await _db.Applicants.FirstOrDefaultAsync(a => a.Id == id);
@@ -175,7 +171,7 @@ namespace TriPowersLLC.Controllers
         // ADMIN: Single Application
         // =========================
         [HttpGet("admin/{id}")]
-        [Authorize(Roles = "admin")]
+        [Authorize(Policy = AuthPolicies.Admin)]
         public async Task<ActionResult<Applicants>> GetById(int id)
         {
             var app = await _db.Applicants

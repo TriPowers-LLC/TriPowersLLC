@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using TriPowersLLC.Auth;
 using TriPowersLLC.Contracts;
 using TriPowersLLC.Models;
 
@@ -8,7 +9,7 @@ namespace TriPowersLLC.Controllers
 {
     [ApiController]
     [Route("api/admin/jobs")]
-    [Authorize(Roles = "admin")]
+    [Authorize(Policy = AuthPolicies.Admin)]
     public class JobsController : ControllerBase
     {
         private readonly JobDBContext _db;

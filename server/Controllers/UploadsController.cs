@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using TriPowersLLC.Auth;
 using TriPowersLLC.Models;
 
 [ApiController]
@@ -22,7 +23,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpPost("presign")]
-    [Authorize(Roles = "admin,applicant")]
+    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
     public IActionResult CreatePresignedUploadUrl([FromBody] PresignUploadRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.FileName))
@@ -54,7 +55,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpGet("applications/{applicationId:int}/resume")]
-    [Authorize(Roles = "admin,applicant")]
+    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
     public async Task<IActionResult> GetResumeDownloadUrl(int applicationId)
     {
         try
@@ -65,7 +66,7 @@ public class UploadsController : ControllerBase
             if (applicant == null)
                 return NotFound("Application not found.");
 
-            if (!User.IsInRole("admin"))
+            if (!AuthPolicies.HasRole(User, "admin"))
             {
                 var userId = GetUserId();
                 if (!userId.HasValue || applicant.UserId != userId.Value)
@@ -123,7 +124,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpPost("applications/{applicationId:int}/resume/presign-replace")]
-    [Authorize(Roles = "admin,applicant")]
+    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
     public async Task<IActionResult> CreateResumeReplaceUrl(int applicationId, [FromBody] PresignUploadRequest request)
     {
         var applicant = await _db.Applicants
@@ -132,7 +133,7 @@ public class UploadsController : ControllerBase
         if (applicant == null)
             return NotFound("Application not found.");
 
-        if (!User.IsInRole("admin"))
+        if (!AuthPolicies.HasRole(User, "admin"))
         {
             var userId = GetUserId();
             if (!userId.HasValue || applicant.UserId != userId.Value)
@@ -169,7 +170,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpPut("applications/{applicationId:int}/resume")]
-    [Authorize(Roles = "admin,applicant")]
+    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
     public async Task<IActionResult> ConfirmResumeReplace(int applicationId, [FromBody] ConfirmResumeReplaceRequest request)
     {
         var applicant = await _db.Applicants
@@ -178,7 +179,7 @@ public class UploadsController : ControllerBase
         if (applicant == null)
             return NotFound("Application not found.");
 
-        if (!User.IsInRole("admin"))
+        if (!AuthPolicies.HasRole(User, "admin"))
         {
             var userId = GetUserId();
             if (!userId.HasValue || applicant.UserId != userId.Value)
@@ -213,7 +214,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpDelete("applications/{applicationId:int}/resume")]
-    [Authorize(Roles = "admin,applicant")]
+    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
     public async Task<IActionResult> DeleteResume(int applicationId)
     {
         var applicant = await _db.Applicants
@@ -222,7 +223,7 @@ public class UploadsController : ControllerBase
         if (applicant == null)
             return NotFound("Application not found.");
 
-        if (!User.IsInRole("admin"))
+        if (!AuthPolicies.HasRole(User, "admin"))
         {
             var userId = GetUserId();
             if (!userId.HasValue || applicant.UserId != userId.Value)
@@ -249,15 +250,7 @@ public class UploadsController : ControllerBase
         return Ok(new { success = true });
     }
 
-    private int? GetUserId()
-    {
-        var claim =
-            User.FindFirst(ClaimTypes.NameIdentifier)?.Value ??
-            User.FindFirst("nameid")?.Value ??
-            User.FindFirst("sub")?.Value;
-
-        return int.TryParse(claim, out var id) ? id : null;
-    }
+    private int? GetUserId() => AuthPolicies.GetUserId(User);
 
     public class PresignUploadRequest
     {
