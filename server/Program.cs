@@ -92,16 +92,19 @@ var awsAccessKey = builder.Configuration["AWS_ACCESS_KEY_ID"];
 var awsSecretKey = builder.Configuration["AWS_SECRET_ACCESS_KEY"];
 var awsRegion = builder.Configuration["AWS_REGION"] ?? "us-east-1";
 
-if (string.IsNullOrWhiteSpace(awsAccessKey) || string.IsNullOrWhiteSpace(awsSecretKey))
-{
-    throw new InvalidOperationException("AWS credentials are not configured.");
-}
-
 builder.Services.AddSingleton<IAmazonS3>(_ =>
 {
-    var credentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
     var region = RegionEndpoint.GetBySystemName(awsRegion);
-    return new AmazonS3Client(credentials, region);
+
+    if (!string.IsNullOrWhiteSpace(awsAccessKey) && !string.IsNullOrWhiteSpace(awsSecretKey))
+    {
+        var credentials = new BasicAWSCredentials(awsAccessKey, awsSecretKey);
+        return new AmazonS3Client(credentials, region);
+    }
+
+    // Fall back to the default AWS credential chain so Elastic Beanstalk/EC2
+    // instance profiles work without explicit environment variables.
+    return new AmazonS3Client(region);
 });
 
 // CORS
