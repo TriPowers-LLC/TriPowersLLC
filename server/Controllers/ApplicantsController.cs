@@ -23,7 +23,7 @@ namespace TriPowersLLC.Controllers
         // APPLICANT: Submit Application
         // =========================
         [HttpPost("jobs/{jobId}")]
-        [Authorize(Policy = AuthPolicies.Applicant)]
+        [Authorize]
         public async Task<IActionResult> Apply(int jobId, [FromBody] CreateApplicationDto dto)
         {
             var job = await _db.Jobs.FirstOrDefaultAsync(j => j.Id == jobId && j.IsActive);
@@ -72,7 +72,7 @@ namespace TriPowersLLC.Controllers
         // USER: My Applications
         // =========================
         [HttpGet("me")]
-        [Authorize(Policy = AuthPolicies.Applicant)]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<Applicants>>> GetMyApplications()
         {
             var userId = GetUserId();

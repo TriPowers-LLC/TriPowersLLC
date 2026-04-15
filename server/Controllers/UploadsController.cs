@@ -23,7 +23,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpPost("presign")]
-    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
+    [Authorize]
     public IActionResult CreatePresignedUploadUrl([FromBody] PresignUploadRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.FileName))
@@ -55,7 +55,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpGet("applications/{applicationId:int}/resume")]
-    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
+    [Authorize]
     public async Task<IActionResult> GetResumeDownloadUrl(int applicationId)
     {
         try
@@ -124,7 +124,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpPost("applications/{applicationId:int}/resume/presign-replace")]
-    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
+    [Authorize]
     public async Task<IActionResult> CreateResumeReplaceUrl(int applicationId, [FromBody] PresignUploadRequest request)
     {
         var applicant = await _db.Applicants
@@ -170,7 +170,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpPut("applications/{applicationId:int}/resume")]
-    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
+    [Authorize]
     public async Task<IActionResult> ConfirmResumeReplace(int applicationId, [FromBody] ConfirmResumeReplaceRequest request)
     {
         var applicant = await _db.Applicants
@@ -214,7 +214,7 @@ public class UploadsController : ControllerBase
     }
 
     [HttpDelete("applications/{applicationId:int}/resume")]
-    [Authorize(Policy = AuthPolicies.ApplicantOrAdmin)]
+    [Authorize]
     public async Task<IActionResult> DeleteResume(int applicationId)
     {
         var applicant = await _db.Applicants
