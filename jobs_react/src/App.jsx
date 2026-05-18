@@ -11,6 +11,7 @@ import Login from './components/Login';
 import JobList from './components/public/JobList';
 import JobDetail from './components/public/JobDetail';
 import MyApplications from './components/applications/MyApplications';
+import Privacy from './components/Privacy';
 
 function RequireAuth({ allowedRoles }) {
   const token = localStorage.getItem('token');
@@ -57,6 +58,7 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/login" element={<Login />} />
         </Route>
