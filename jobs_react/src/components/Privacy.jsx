@@ -1,6 +1,6 @@
 import React from "react";
 
-const LAST_UPDATED = "May 18, 2026";
+const LAST_UPDATED = "May 21, 2026";
 
 const Privacy = () => {
   return (
@@ -56,6 +56,22 @@ const Privacy = () => {
           <p className="mt-3">
             You may contact us to request updates, corrections, or deletion of personal
             information, subject to applicable law.
+          </p>
+        </div>
+
+        <div id="data-deletion">
+          <h2 className="text-2xl font-semibold text-slate-900">Data Deletion Instructions</h2>
+          <p className="mt-3">
+            If you want TriPowers LLC to delete your personal data, submit a request through our{' '}
+            <a href="/contact" className="text-blue-700 underline">Contact</a> page and include:
+          </p>
+          <ul className="mt-3 list-disc space-y-2 pl-6">
+            <li>Your full name and the email address used with our services.</li>
+            <li>The type of data you want deleted (for example, contact submissions or job application data).</li>
+            <li>Any details that help us locate your records.</li>
+          </ul>
+          <p className="mt-3">
+            We verify requests before deletion and respond within a reasonable timeframe consistent with applicable law.
           </p>
         </div>
 
