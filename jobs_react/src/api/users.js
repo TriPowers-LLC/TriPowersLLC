@@ -6,3 +6,5 @@ export const updateMe     = (data) => apiClient.put('/users/me', data);
 export const getUserById  = (id) => apiClient.get(`/users/${id}`);
 export const listUsers    = () => apiClient.get('/users');
 export const deleteUser   = (id) => apiClient.delete(`/users/${id}`);
+
+export const deleteMyAccount = () => apiClient.delete('/users/me');
