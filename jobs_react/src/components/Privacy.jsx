@@ -1,6 +1,6 @@
 import React from "react";
 
-const LAST_UPDATED = "May 18, 2026";
+const LAST_UPDATED = "May 22, 2026";
 
 const Privacy = () => {
   return (
@@ -56,6 +56,28 @@ const Privacy = () => {
           <p className="mt-3">
             You may contact us to request updates, corrections, or deletion of personal
             information, subject to applicable law.
+          </p>
+        </div>
+
+        <div id="data-deletion">
+          <h2 className="text-2xl font-semibold text-slate-900">Data Deletion Instructions</h2>
+          <p className="mt-3">
+            You can request deletion of your data using either method below:
+          </p>
+          <ol className="mt-3 list-decimal space-y-2 pl-6">
+            <li>
+              If you have an applicant account, sign in and go to <strong>My Applications</strong>, then select{' '}
+              <strong>Delete My Account</strong>. This permanently deletes your account and associated applicant data.
+            </li>
+            <li>
+              If you cannot access your account, submit a request through our{' '}
+              <a href="/contact" className="text-blue-700 underline">Contact</a> page and include your full name,
+              email address, and details about the data you want deleted.
+            </li>
+          </ol>
+          <p className="mt-3">
+            We verify deletion requests before processing and respond within a reasonable timeframe, consistent with
+            applicable law.
           </p>
         </div>
 
