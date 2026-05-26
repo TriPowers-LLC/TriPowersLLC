@@ -10,6 +10,8 @@ namespace TriPowersLLC.Models
 
         // "admin", "applicant"
         public string Role { get; set; } = "applicant";
+
+        public byte[]? PasswordResetTokenHash { get; set; }
+        public DateTimeOffset? PasswordResetTokenExpiresAt { get; set; }
     }
 }
-
