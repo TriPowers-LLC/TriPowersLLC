@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMyApplications } from "../../slices/applicationsSlice";
 import {
@@ -7,10 +8,14 @@ import {
   confirmResumeReplace,
   deleteResume,
 } from "../../api/adminApi";
+import { deleteMyAccount } from "../../api/users";
+import { logout } from "../../slices/authSlice";
 
 const MyApplications = () => {
   const dispatch = useDispatch();
   const [busyId, setBusyId] = useState(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const navigate = useNavigate();
 
   const {
     myApplications = [],
@@ -66,6 +71,30 @@ const MyApplications = () => {
     }
   };
 
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      "Delete your account and all associated application data? This action cannot be undone."
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setDeletingAccount(true);
+      await deleteMyAccount();
+      dispatch(logout());
+      alert("Your account and application data were deleted.");
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Unable to delete account.");
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
+
   const handleDeleteResume = async (applicationId) => {
     try {
       setBusyId(applicationId);
@@ -85,6 +114,21 @@ const MyApplications = () => {
         <h1 className="text-3xl font-bold text-blue-900">My Applications</h1>
         <p className="text-slate-700">Track applications submitted with your account.</p>
       </header>
+
+      <div className="rounded border border-red-200 bg-red-50 p-4">
+        <h2 className="text-lg font-semibold text-red-800">Delete Account</h2>
+        <p className="mt-1 text-sm text-red-700">
+          This permanently deletes your user account and all applicant data submitted from this account.
+        </p>
+        <button
+          type="button"
+          onClick={handleDeleteAccount}
+          disabled={deletingAccount}
+          className="mt-3 rounded bg-red-700 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {deletingAccount ? "Deleting Account..." : "Delete My Account"}
+        </button>
+      </div>
 
       {myStatus === "loading" && (
         <p className="text-slate-600">Loading your applications…</p>

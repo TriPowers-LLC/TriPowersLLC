@@ -11,6 +11,7 @@ const NAV_LINKS = [
   { label: "Careers", href: "/careers" },
   { label: "Portfolio", href: "/portfolio" },
   { label: "Contact", href: "/contact" },
+  { label: "Privacy", href: "/privacy" },
   { label: "Admin Dashboard", href: "/admin", role: "admin" },
   { label: "Applications", href: "/admin/applications", role: "admin" },
   { label: "My Applications", href: "/myapplications", role: "applicant" },

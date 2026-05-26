@@ -164,6 +164,37 @@ namespace TriPowersLLC.Controllers
             await _db.SaveChangesAsync();
 
             return Ok(new { message = "Password has been reset." });
+        [HttpDelete("me")]
+        [Authorize]
+        public async Task<ActionResult> DeleteMyAccount()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized(new { message = "Invalid authenticated user." });
+            }
+
+            var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found." });
+            }
+
+            if (AuthPolicies.NormalizeRole(user.Role) == "admin")
+            {
+                return BadRequest(new { message = "Admin accounts cannot be deleted through this endpoint." });
+            }
+
+            var applications = await _db.Applicants.Where(a => a.UserId == userId).ToListAsync();
+            if (applications.Count > 0)
+            {
+                _db.Applicants.RemoveRange(applications);
+            }
+
+            _db.Users.Remove(user);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Account and associated applicant data deleted." });
         }
 
         // ----- HELPER -----
