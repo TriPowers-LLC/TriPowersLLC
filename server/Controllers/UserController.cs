@@ -22,11 +22,17 @@ namespace TriPowersLLC.Controllers
     {
         private readonly JobDBContext _db;
         private readonly string _jwtKey;
+        private readonly IWebHostEnvironment _environment;
         private readonly ILogger<UsersController> _logger;
 
-        public UsersController(JobDBContext db, IConfiguration config, ILogger<UsersController> logger)
+        public UsersController(
+            JobDBContext db,
+            IConfiguration config,
+            IWebHostEnvironment environment,
+            ILogger<UsersController> logger)
         {
             _db = db;
+            _environment = environment;
             _logger = logger;
            var configuredKey = config["Jwt:Key"] ?? config["Jwt__Key"];
 
@@ -41,6 +47,73 @@ namespace TriPowersLLC.Controllers
             }
 
             _jwtKey = configuredKey;
+        }
+
+        [AllowAnonymous]
+        [HttpPost("password-reset/request")]
+        public async Task<ActionResult> RequestPasswordReset(PasswordResetRequestDto dto)
+        {
+            // Always return the same response so this endpoint cannot be used to
+            // discover which email addresses have accounts.
+            var responseMessage = "If the account exists, reset instructions have been sent.";
+            var username = dto.Username?.Trim();
+            if (string.IsNullOrWhiteSpace(username))
+            {
+                return Ok(new { message = responseMessage });
+            }
+
+            var user = await _db.Users.SingleOrDefaultAsync(u => u.Username == username);
+            if (user == null)
+            {
+                return Ok(new { message = responseMessage });
+            }
+
+            var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            user.PasswordResetTokenHash = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+            user.PasswordResetTokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15);
+            await _db.SaveChangesAsync();
+
+            // Until email delivery is configured, the token is available only in
+            // development logs. It is never returned by a production API response.
+            _logger.LogInformation("Password reset token for {Username}: {ResetToken}", user.Username, token);
+
+            return _environment.IsDevelopment()
+                ? Ok(new { message = responseMessage, resetToken = token })
+                : Ok(new { message = responseMessage });
+        }
+
+        [AllowAnonymous]
+        [HttpPost("password-reset/confirm")]
+        public async Task<ActionResult> ConfirmPasswordReset(PasswordResetConfirmDto dto)
+        {
+            var username = dto.Username?.Trim();
+            if (string.IsNullOrWhiteSpace(username) ||
+                string.IsNullOrWhiteSpace(dto.Token) ||
+                string.IsNullOrWhiteSpace(dto.NewPassword) ||
+                dto.NewPassword.Length < 12)
+            {
+                return BadRequest(new { message = "A valid reset token and a password of at least 12 characters are required." });
+            }
+
+            var user = await _db.Users.SingleOrDefaultAsync(u => u.Username == username);
+            var suppliedTokenHash = SHA256.HashData(Encoding.UTF8.GetBytes(dto.Token.Trim()));
+            var tokenIsValid = user?.PasswordResetTokenHash is { Length: > 0 } storedHash &&
+                user.PasswordResetTokenExpiresAt > DateTimeOffset.UtcNow &&
+                CryptographicOperations.FixedTimeEquals(storedHash, suppliedTokenHash);
+
+            if (!tokenIsValid || user == null)
+            {
+                return BadRequest(new { message = "The reset token is invalid or has expired." });
+            }
+
+            using var hmac = new HMACSHA512();
+            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.NewPassword));
+            user.PasswordSalt = hmac.Key;
+            user.PasswordResetTokenHash = null;
+            user.PasswordResetTokenExpiresAt = null;
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Password reset successfully. You can now log in." });
         }
 
         // POST /api/users/login
@@ -119,51 +192,6 @@ namespace TriPowersLLC.Controllers
                 }
             });
         }
-
-
-
-        [AllowAnonymous]
-        [HttpPost("request-password-reset")]
-        public async Task<ActionResult> RequestPasswordReset(RequestPasswordResetDto dto)
-        {
-            var user = await _db.Users.SingleOrDefaultAsync(u => u.Username == dto.Username);
-            if (user is not null)
-            {
-                var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
-                user.PasswordResetTokenHash = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
-                user.PasswordResetTokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30);
-                await _db.SaveChangesAsync();
-
-                _logger.LogInformation("Password reset token for {Username}: {Token}", user.Username, rawToken);
-            }
-
-            return Ok(new { message = "If the account exists, reset instructions were generated." });
-        }
-
-        [AllowAnonymous]
-        [HttpPost("reset-password")]
-        public async Task<ActionResult> ResetPassword(ResetPasswordDto dto)
-        {
-            var tokenHash = SHA256.HashData(Encoding.UTF8.GetBytes(dto.Token));
-            var user = await _db.Users.SingleOrDefaultAsync(u =>
-                u.PasswordResetTokenHash != null &&
-                u.PasswordResetTokenHash.SequenceEqual(tokenHash) &&
-                u.PasswordResetTokenExpiresAt > DateTimeOffset.UtcNow);
-
-            if (user is null)
-            {
-                return BadRequest(new { message = "Invalid or expired reset token." });
-            }
-
-            using var hmac = new HMACSHA512();
-            user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.NewPassword));
-            user.PasswordSalt = hmac.Key;
-            user.PasswordResetTokenHash = null;
-            user.PasswordResetTokenExpiresAt = null;
-
-            await _db.SaveChangesAsync();
-
-            return Ok(new { message = "Password has been reset." });
         [HttpDelete("me")]
         [Authorize]
         public async Task<ActionResult> DeleteMyAccount()
@@ -232,13 +260,14 @@ namespace TriPowersLLC.Controllers
         public string Password { get; set; } = null!;
     }
 
-    public class RequestPasswordResetDto
+    public class PasswordResetRequestDto
     {
         public string Username { get; set; } = null!;
     }
 
-    public class ResetPasswordDto
+    public class PasswordResetConfirmDto
     {
+        public string Username { get; set; } = null!;
         public string Token { get; set; } = null!;
         public string NewPassword { get; set; } = null!;
     }

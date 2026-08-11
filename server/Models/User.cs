@@ -7,11 +7,11 @@ namespace TriPowersLLC.Models
         public string Username { get; set; } = null!;
         public byte[] PasswordHash { get; set; } = null!;
         public byte[] PasswordSalt { get; set; } = null!;
+        public byte[]? PasswordResetTokenHash { get; set; }
+        public DateTimeOffset? PasswordResetTokenExpiresAt { get; set; }
 
         // "admin", "applicant"
         public string Role { get; set; } = "applicant";
-
-        public byte[]? PasswordResetTokenHash { get; set; }
-        public DateTimeOffset? PasswordResetTokenExpiresAt { get; set; }
     }
 }
+
