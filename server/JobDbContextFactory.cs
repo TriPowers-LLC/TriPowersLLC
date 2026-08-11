@@ -24,8 +24,6 @@ namespace TriPowersLLC.Models
                 ?? config["ConnectionStrings:DefaultConnection"]
                 ?? config["ConnectionStrings__DefaultConnection"];
 
-            Console.WriteLine($"EF Connection: {cs}");
-
             if (string.IsNullOrWhiteSpace(cs))
             {
                 throw new InvalidOperationException(

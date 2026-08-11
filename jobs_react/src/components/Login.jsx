@@ -2,16 +2,15 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { postRegister, postRequestPasswordReset, postResetPassword } from '../api/auth';
+import { confirmPasswordReset, postRegister, requestPasswordReset } from '../api/auth';
 import { loginUser, loginSuccess } from '../slices/authSlice';
 
 export default function Login() {
   const [creds, setCreds] = useState({ username: '', password: '' });
   const [isRegister, setIsRegister] = useState(false);
-  const [isResetMode, setIsResetMode] = useState(false);
-  const [resetToken, setResetToken] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [message, setMessage] = useState('');
+  const [resetStage, setResetStage] = useState(null);
+  const [reset, setReset] = useState({ token: '', newPassword: '' });
+  const [resetMessage, setResetMessage] = useState('');
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -55,22 +54,6 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      setMessage('');
-      if (isResetMode) {
-        if (!resetToken) {
-          await postRequestPasswordReset({ username: creds.username });
-          setMessage('If the username exists, a reset token was generated. Ask an admin to retrieve the server log token.');
-          return;
-        }
-
-        await postResetPassword({ token: resetToken, newPassword });
-        setMessage('Password reset successful. You can now log in.');
-        setIsResetMode(false);
-        setResetToken('');
-        setNewPassword('');
-        return;
-      }
-
       if (isRegister) {
         const { data } = await postRegister(creds);
 
@@ -92,10 +75,70 @@ export default function Login() {
     }
   };
 
+  const requestReset = async (e) => {
+    e.preventDefault();
+    setResetMessage('');
+    try {
+      const { data } = await requestPasswordReset(creds.username);
+      setReset((prev) => ({ ...prev, token: data?.resetToken || '' }));
+      setResetStage('confirm');
+      setResetMessage(data?.message || 'If the account exists, reset instructions have been sent.');
+    } catch (err) {
+      setResetMessage(err.response?.data?.message || 'Unable to request a reset token.');
+    }
+  };
+
+  const confirmReset = async (e) => {
+    e.preventDefault();
+    setResetMessage('');
+    try {
+      const { data } = await confirmPasswordReset({
+        username: creds.username,
+        token: reset.token,
+        newPassword: reset.newPassword,
+      });
+      setResetMessage(data?.message || 'Password reset successfully.');
+      setReset({ token: '', newPassword: '' });
+      setResetStage(null);
+    } catch (err) {
+      setResetMessage(err.response?.data?.message || 'The reset token is invalid or has expired.');
+    }
+  };
+
+  if (resetStage) {
+    return (
+      <div className="max-w-sm mx-auto p-4">
+        <h2 className="text-2xl mb-4">Reset password</h2>
+        {resetMessage && <p className="mb-3">{resetMessage}</p>}
+        <form onSubmit={resetStage === 'request' ? requestReset : confirmReset}>
+          <label className="block mb-3">
+            Username
+            <input type="text" value={creds.username} onChange={(e) => setCreds((prev) => ({ ...prev, username: e.target.value }))} className="w-full border p-2 mt-1" required readOnly={resetStage === 'confirm'} />
+          </label>
+          {resetStage === 'confirm' && (
+            <>
+              <label className="block mb-3">
+                Reset token
+                <input type="text" value={reset.token} onChange={(e) => setReset((prev) => ({ ...prev, token: e.target.value }))} className="w-full border p-2 mt-1" autoComplete="one-time-code" required />
+              </label>
+              <label className="block mb-4">
+                New password
+                <input type="password" value={reset.newPassword} onChange={(e) => setReset((prev) => ({ ...prev, newPassword: e.target.value }))} className="w-full border p-2 mt-1" minLength={12} autoComplete="new-password" required />
+              </label>
+            </>
+          )}
+          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
+            {resetStage === 'request' ? 'Request reset token' : 'Reset password'}
+          </button>
+        </form>
+        <button type="button" onClick={() => { setResetStage(null); setResetMessage(''); }} className="block mx-auto mt-4 text-blue-600 underline">Back to login</button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-sm mx-auto p-4">
       <h2 className="text-2xl mb-4">{isRegister ? 'Register' : 'Log In'}</h2>
-      {message && <p className="text-green-700 mb-2">{message}</p>}
 
       {error && <p className="text-red-500 mb-2">{error}</p>}
 
@@ -112,7 +155,7 @@ export default function Login() {
           />
         </label>
 
-        {!isResetMode && <label className="block mb-4">
+        <label className="block mb-4">
           Password
           <input
             type="password"
@@ -122,51 +165,22 @@ export default function Login() {
             className="w-full border p-2 mt-1"
             required
           />
-        </label>}
-
-        {isResetMode && (
-          <>
-            <label className="block mb-4">
-              Reset token (from server logs)
-              <input
-                type="text"
-                value={resetToken}
-                onChange={(e) => setResetToken(e.target.value)}
-                className="w-full border p-2 mt-1"
-                placeholder="Leave blank to request token"
-              />
-            </label>
-
-            <label className="block mb-4">
-              New password
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full border p-2 mt-1"
-                required={!!resetToken}
-              />
-            </label>
-          </>
-        )}
+        </label>
 
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded"
           disabled={loading}
         >
-          {loading ? 'Please wait...' : isResetMode ? (resetToken ? 'Reset Password' : 'Request Reset Token') : isRegister ? 'Register' : 'Log In'}
+          {loading ? 'Please wait...' : isRegister ? 'Register' : 'Log In'}
         </button>
       </form>
 
-      <div className="mt-4 space-y-2">
-        <button type="button" className="w-full border py-2 rounded" onClick={() => window.location.href = '/api/auth/google'}>
-          Continue with Google
+      {!isRegister && (
+        <button type="button" onClick={() => { setResetStage('request'); setResetMessage(''); }} className="block mx-auto mt-3 text-blue-600 underline">
+          Forgot password?
         </button>
-        <button type="button" className="w-full border py-2 rounded" onClick={() => window.location.href = '/api/auth/microsoft'}>
-          Continue with Microsoft
-        </button>
-      </div>
+      )}
 
       <p className="mt-4 text-center">
         {isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
@@ -176,12 +190,6 @@ export default function Login() {
           className="text-blue-600 underline"
         >
           {isRegister ? 'Log In' : 'Register'}
-        </button>
-      </p>
-
-      <p className="mt-2 text-center">
-        <button type="button" onClick={() => setIsResetMode((prev) => !prev)} className="text-blue-600 underline">
-          {isResetMode ? 'Back to login' : 'Forgot password?'}
         </button>
       </p>
     </div>
