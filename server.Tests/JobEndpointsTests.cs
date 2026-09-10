@@ -70,7 +70,7 @@ public class JobEndpointsTests
         Assert.NotNull(createdJob);
         Assert.True(createdJob!.Id > 0);
 
-        var fetchedJob = await publicClient.GetFromJsonAsync<JobResponse>($"/api/jobs/{createdJob.Id}");
+        var fetchedJob = await publicClient.GetFromJsonAsync<JobResponse>($"/api/public/jobs/{createdJob.Id}");
         Assert.NotNull(fetchedJob);
         Assert.Equal(createRequest.Title, fetchedJob!.Title);
 
@@ -91,7 +91,7 @@ public class JobEndpointsTests
         var updateResponse = await adminClient.PutAsJsonAsync($"/api/admin/jobs/{createdJob.Id}", updateRequest);
         Assert.Equal(HttpStatusCode.NoContent, updateResponse.StatusCode);
 
-        var updatedJob = await publicClient.GetFromJsonAsync<JobResponse>($"/api/jobs/{createdJob.Id}");
+        var updatedJob = await publicClient.GetFromJsonAsync<JobResponse>($"/api/public/jobs/{createdJob.Id}");
         Assert.NotNull(updatedJob);
         Assert.Equal(updateRequest.Title, updatedJob!.Title);
         Assert.Equal(updateRequest.SalaryRangeMax, updatedJob.SalaryRangeMax);
@@ -99,7 +99,7 @@ public class JobEndpointsTests
         var deleteResponse = await adminClient.DeleteAsync($"/api/admin/jobs/{createdJob.Id}");
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 
-        var afterDelete = await publicClient.GetAsync($"/api/jobs/{createdJob.Id}");
+        var afterDelete = await publicClient.GetAsync($"/api/public/jobs/{createdJob.Id}");
         Assert.Equal(HttpStatusCode.NotFound, afterDelete.StatusCode);
     }
 }

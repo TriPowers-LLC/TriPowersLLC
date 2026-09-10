@@ -30,7 +30,9 @@ public class PasswordResetEndpointsTests : IClassFixture<CustomWebApplicationFac
             newPassword = "A-new-password-123!"
         });
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.True(
+            response.StatusCode == HttpStatusCode.BadRequest,
+            $"Expected BadRequest, received {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
     }
 
     [Fact]
@@ -39,8 +41,14 @@ public class PasswordResetEndpointsTests : IClassFixture<CustomWebApplicationFac
         var username = await CreateUser();
         var client = _factory.CreateClient();
         var request = await client.PostAsJsonAsync("/api/users/password-reset/request", new { username });
+        Assert.True(
+            request.StatusCode == HttpStatusCode.OK,
+            $"Expected OK, received {request.StatusCode}: {await request.Content.ReadAsStringAsync()}");
         var body = await request.Content.ReadFromJsonAsync<ResetResponse>();
         Assert.False(string.IsNullOrWhiteSpace(body?.ResetToken));
+        Assert.Equal(username, _factory.EmailSender.Recipient);
+        Assert.Contains("/reset-password#username=", _factory.EmailSender.ResetUrl);
+        Assert.Contains("&token=", _factory.EmailSender.ResetUrl);
 
         var payload = new
         {
@@ -58,7 +66,9 @@ public class PasswordResetEndpointsTests : IClassFixture<CustomWebApplicationFac
             username,
             password = payload.newPassword
         });
-        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        Assert.True(
+            login.StatusCode == HttpStatusCode.OK,
+            $"Expected OK, received {login.StatusCode}: {await login.Content.ReadAsStringAsync()}");
     }
 
     private async Task<string> CreateUser()
@@ -78,4 +88,16 @@ public class PasswordResetEndpointsTests : IClassFixture<CustomWebApplicationFac
     }
 
     private sealed record ResetResponse(string Message, string? ResetToken);
+
+    [Fact]
+    public async Task GoogleLoginReturnsServiceUnavailableWhenCredentialsAreMissing()
+    {
+        var response = await _factory.CreateClient(new() { AllowAutoRedirect = false })
+            .GetAsync("/api/auth/google");
+
+        Assert.True(
+            response.StatusCode == HttpStatusCode.ServiceUnavailable,
+            $"Expected ServiceUnavailable, received {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+    }
+
 }

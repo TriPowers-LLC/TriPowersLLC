@@ -1,6 +1,18 @@
 import React from "react";
+import { Link } from "react-router-dom";
+import Seo from "./Seo";
 
 const projects = [
+  {
+    title: "WinningBids.ai",
+    subtitle: "AI-Powered Government Contracting SaaS Platform",
+    description:
+      "A TriPowers-developed commercial product that simplifies federal opportunity discovery, capture, solicitation analysis, and proposal development for small businesses.",
+    url: "/products/winningbids",
+    role: "Product Strategy, Design & Full-Stack Development",
+    tech: ["Full-Stack SaaS", "AI Integration", "Government APIs", "Document Processing", "Cloud Deployment"],
+    internal: true,
+  },
   {
     title: "Spirit Luxe Travels",
     description:
@@ -34,9 +46,34 @@ const projects = [
   },
 ];
 
+const portfolioSchema = {
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  name: "TriPowers LLC Portfolio and Product Experience",
+  url: "https://www.tripowersllc.com/portfolio",
+  about: [
+    "Application development",
+    "AI integration",
+    "Cloud deployment",
+    "Government technology",
+  ],
+  hasPart: {
+    "@type": "SoftwareApplication",
+    name: "WinningBids.ai",
+    url: "https://winningbids.ai/",
+    applicationCategory: "BusinessApplication",
+  },
+};
+
 const Portfolio = () => {
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
+      <Seo
+        title="Portfolio & Product Experience"
+        description="Explore TriPowers LLC application development, AI integration, cloud delivery, government technology products, and modernization experience."
+        path="/portfolio"
+        structuredData={portfolioSchema}
+      />
       <h1 className="text-3xl font-bold mb-8 text-center">
         Our Work & Experience
       </h1>
@@ -48,6 +85,10 @@ const Portfolio = () => {
             className="border rounded-2xl p-6 shadow-sm hover:shadow-md transition"
           >
             <h2 className="text-xl font-semibold mb-2">{project.title}</h2>
+
+            {project.subtitle && (
+              <p className="mb-3 text-sm font-semibold text-blue-700">{project.subtitle}</p>
+            )}
 
             <p className="text-gray-600 mb-3">{project.description}</p>
 
@@ -66,7 +107,16 @@ const Portfolio = () => {
               ))}
             </div>
 
-            {project.url && (
+            {project.url && project.internal && (
+              <Link
+                to={project.url}
+                className="text-blue-600 text-sm font-medium hover:underline"
+              >
+                View Product →
+              </Link>
+            )}
+
+            {project.url && !project.internal && (
               <a
                 href={project.url}
                 target="_blank"

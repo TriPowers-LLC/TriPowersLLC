@@ -2,6 +2,19 @@ import axios from "axios";
 import { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
+import Seo from "./Seo";
+import { Facebook, Instagram, Linkedin } from "lucide-react";
+import { TRIPOWERS_SOCIAL_LINKS } from "../config/externalLinks";
+
+const SOCIAL_ICONS = { LinkedIn: Linkedin, Facebook, Instagram };
+
+const contactSchema = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  name: "Contact TriPowers LLC",
+  url: "https://www.tripowersllc.com/contact",
+  about: { "@type": "Organization", name: "TriPowers LLC" },
+};
 
 gsap.registerPlugin(useGSAP);
 
@@ -54,6 +67,12 @@ const Contact = () => {
       id="contact"
       className="relative bg-gradient-to-b from-slate-50 to-blue-50 px-4 py-20"
     >
+      <Seo
+        title="Contact TriPowers LLC"
+        description="Contact TriPowers LLC about application development, AI automation, cloud modernization, technical staffing, and government technology solutions."
+        path="/contact"
+        structuredData={contactSchema}
+      />
       <div className="mx-auto max-w-6xl">
         <div className="contact-card grid overflow-hidden rounded-3xl bg-white shadow-2xl lg:grid-cols-2">
           <div className="bg-blue-900 px-8 py-12 text-white md:px-12">
@@ -61,9 +80,9 @@ const Contact = () => {
               Contact Us
             </p>
 
-            <h2 className="mt-4 text-3xl font-bold leading-tight md:text-4xl">
+            <h1 className="mt-4 text-3xl font-bold leading-tight md:text-4xl">
               TriPowers LLC
-            </h2>
+            </h1>
 
             <p className="mt-4 max-w-md text-base leading-7 text-blue-100">
               Let’s talk about your staffing, technology, automation, or digital
@@ -81,6 +100,27 @@ const Contact = () => {
               <div>
                 <p className="font-semibold text-white">Response Time</p>
                 <p>We aim to respond within 1–2 business days.</p>
+              </div>
+
+              <div>
+                <p className="font-semibold text-white">Follow TriPowers LLC</p>
+                <div className="mt-3 flex gap-3">
+                  {TRIPOWERS_SOCIAL_LINKS.map(({ name, url }) => {
+                    const Icon = SOCIAL_ICONS[name];
+                    return (
+                      <a
+                        key={name}
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Follow TriPowers LLC on ${name} (opens in a new tab)`}
+                        className="rounded-lg border border-blue-300/30 bg-white/10 p-2.5 transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      >
+                        <Icon size={19} aria-hidden="true" />
+                      </a>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>

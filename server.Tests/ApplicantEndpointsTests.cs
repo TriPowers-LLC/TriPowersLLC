@@ -1,10 +1,9 @@
-using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using TriPowersLLC.Contracts;
-using TriPowersLLC.Models;
+using TriPowersLLC.Controllers;
 using Xunit;
 
 namespace TriPowersLLC.Tests;
@@ -12,25 +11,22 @@ namespace TriPowersLLC.Tests;
 public class ApplicantEndpointsTests
 {
     [Fact]
-    public async Task Applicants_Endpoints_Require_Admin_Role()
+    public async Task Applicants_Admin_Endpoint_Requires_Admin_Role()
     {
         using var factory = new CustomWebApplicationFactory();
-        var anonymousClient = factory.CreateClient();
-        var userClient = factory.CreateUserClient();
+        var anonymous = await factory.CreateClient().GetAsync("/api/applicants/admin");
+        var nonAdmin = await factory.CreateUserClient().GetAsync("/api/applicants/admin");
 
-        var unauthorized = await anonymousClient.GetAsync("/api/admin/applicants");
-        Assert.Equal(HttpStatusCode.Unauthorized, unauthorized.StatusCode);
-
-        var forbidden = await userClient.GetAsync("/api/admin/applicants");
-        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, nonAdmin.StatusCode);
     }
 
     [Fact]
-    public async Task Applicants_Admin_Can_Perform_Crud()
+    public async Task Applicant_Can_Apply_And_Admin_Can_Update_Status()
     {
         using var factory = new CustomWebApplicationFactory();
         var adminClient = factory.CreateAdminClient();
-
+        var applicantClient = factory.CreateUserClient();
         var jobResponse = await adminClient.PostAsJsonAsync("/api/admin/jobs", new JobCreateRequest
         {
             Title = "QA Engineer",
@@ -43,47 +39,35 @@ public class ApplicantEndpointsTests
             SalaryRangeMin = 60000,
             SalaryRangeMax = 80000
         });
-
         var job = await jobResponse.Content.ReadFromJsonAsync<JobResponse>();
         Assert.NotNull(job);
 
-        var applicant = new Applicants
+        var applyResponse = await applicantClient.PostAsJsonAsync($"/api/applicants/jobs/{job!.Id}", new CreateApplicationDto
         {
-            firstName = "Ada",
-            lastName = "Lovelace",
-            email = "ada@example.com",
-            password = "password123",
-            phone = "123-456-7890",
-            streetAddress = "123 Main St",
-            city = "Remote City",
-            state = "NA",
-            country = "USA",
-            zipCode = "12345",
-            ResumeText = "Pioneer",
-            JobId = job!.Id
-        };
+            FirstName = "Ada",
+            LastName = "Lovelace",
+            Email = "ada@example.com",
+            Phone = "123-456-7890",
+            StreetAddress = "123 Main St",
+            City = "Remote City",
+            State = "NA",
+            Country = "USA",
+            ZipCode = "12345",
+            CoverLetter = "Pioneer"
+        });
+        Assert.Equal(HttpStatusCode.OK, applyResponse.StatusCode);
 
-        var createResponse = await adminClient.PostAsJsonAsync("/api/admin/applicants", applicant);
-        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
-        var createdApplicant = await createResponse.Content.ReadFromJsonAsync<Applicants>();
-        Assert.NotNull(createdApplicant);
+        var listResponse = await adminClient.GetAsync("/api/applicants/admin");
+        Assert.Equal(HttpStatusCode.OK, listResponse.StatusCode);
+        var page = await listResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var applicantId = page.GetProperty("items")[0].GetProperty("id").GetInt32();
 
-        var listResponse = await adminClient.GetFromJsonAsync<List<Applicants>>("/api/admin/applicants");
-        Assert.NotNull(listResponse);
-        Assert.Contains(listResponse!, a => a.email == applicant.email);
+        var statusResponse = await adminClient.PatchAsJsonAsync(
+            $"/api/applicants/admin/{applicantId}/status",
+            new { status = "reviewing" });
+        Assert.Equal(HttpStatusCode.OK, statusResponse.StatusCode);
 
-        createdApplicant!.firstName = "Augusta";
-        var updateResponse = await adminClient.PutAsJsonAsync($"/api/admin/applicants/{createdApplicant.id}", createdApplicant);
-        Assert.Equal(HttpStatusCode.NoContent, updateResponse.StatusCode);
-
-        var updated = await adminClient.GetFromJsonAsync<Applicants>($"/api/admin/applicants/{createdApplicant.id}");
-        Assert.NotNull(updated);
-        Assert.Equal("Augusta", updated!.firstName);
-
-        var deleteResponse = await adminClient.DeleteAsync($"/api/admin/applicants/{createdApplicant.id}");
-        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
-
-        var afterDelete = await adminClient.GetAsync($"/api/admin/applicants/{createdApplicant.id}");
-        Assert.Equal(HttpStatusCode.NotFound, afterDelete.StatusCode);
+        var updated = await adminClient.GetFromJsonAsync<JsonElement>($"/api/applicants/admin/{applicantId}");
+        Assert.Equal("reviewing", updated.GetProperty("status").GetString());
     }
 }

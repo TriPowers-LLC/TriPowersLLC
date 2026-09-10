@@ -1,10 +1,23 @@
 import React from "react";
+import Seo from "./Seo";
 
 const LAST_UPDATED = "May 22, 2026";
 
 const Privacy = () => {
   return (
     <section className="mx-auto max-w-4xl px-4 py-20 text-slate-800">
+      <Seo
+        title="Privacy Policy"
+        description="Review how TriPowers LLC collects, uses, protects, and manages information submitted through its website and job-application services."
+        path="/privacy"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: "TriPowers LLC Privacy Policy",
+          url: "https://www.tripowersllc.com/privacy",
+          dateModified: "2026-05-22",
+        }}
+      />
       <h1 className="text-4xl font-bold text-slate-900">Privacy Policy</h1>
       <p className="mt-3 text-sm text-slate-500">Last updated: {LAST_UPDATED}</p>
 

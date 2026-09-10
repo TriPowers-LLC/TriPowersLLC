@@ -2,16 +2,38 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Shield, Users, Globe } from "lucide-react";
+import Seo from "./Seo";
+import { TRIPOWERS_SOCIAL_LINKS } from "../config/externalLinks";
+
+const aboutSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  name: "About TriPowers LLC",
+  url: "https://www.tripowersllc.com/about",
+  mainEntity: {
+    "@type": "Organization",
+    name: "TriPowers LLC",
+    url: "https://www.tripowersllc.com/",
+    areaServed: "United States",
+    sameAs: TRIPOWERS_SOCIAL_LINKS.map(({ url }) => url),
+  },
+};
 
 const About = () => {
  return (
     <section id="about" className="relative">
+      <Seo
+        title="About Our Government Technology Company"
+        description="Learn about TriPowers LLC, a Texas-based SDVOSB delivering application development, AI automation, cloud solutions, technical staffing, and mission support."
+        path="/about"
+        structuredData={aboutSchema}
+      />
       {/* Background gradient */}
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-50 via-white to-emerald-50" />
 
       <div className="container mx-auto px-4 py-20">
         {/* Heading */}
-        <motion.h2
+        <motion.h1
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -19,7 +41,7 @@ const About = () => {
           className="text-4xl md:text-6xl font-extrabold text-center mb-8"
         >
           Empowering Government Innovation
-        </motion.h2>
+        </motion.h1>
 
         {/* Intro Paragraph */}
         <motion.p
