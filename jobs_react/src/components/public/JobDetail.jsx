@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useParams, Link } from "react-router-dom";
 import { fetchJobById } from "../../slices/jobsSlice";
 import ApplicantForm from "../applications/ApplicantForm";
+import Seo from "../Seo";
 
 const JobDetail = () => {
   const { id } = useParams();
@@ -31,6 +32,20 @@ const JobDetail = () => {
 
   return (
     <div className="space-y-6">
+      <Seo
+        title={`${selectedJob.title} — Careers`}
+        description={`${selectedJob.title} opportunity with TriPowers LLC${selectedJob.location ? ` in ${selectedJob.location}` : ""}. Review the role, requirements, responsibilities, and application details.`}
+        path={`/apply/${id}`}
+        type="article"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          name: `${selectedJob.title} — TriPowers LLC Careers`,
+          url: `https://www.tripowersllc.com/apply/${id}`,
+          description: selectedJob.description,
+          datePublished: posted ? new Date(posted).toISOString() : undefined,
+        }}
+      />
       <header className="space-y-2">
         <p className="text-sm text-slate-600">
           Posted {posted ? new Date(posted).toLocaleDateString() : "Recently"}

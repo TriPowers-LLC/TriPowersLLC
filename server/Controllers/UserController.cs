@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using TriPowersLLC.Auth;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.RateLimiting;
+using System.ComponentModel.DataAnnotations;
+using TriPowersLLC.Services;
 
 namespace TriPowersLLC.Controllers
 {
@@ -24,16 +27,21 @@ namespace TriPowersLLC.Controllers
         private readonly string _jwtKey;
         private readonly IWebHostEnvironment _environment;
         private readonly ILogger<UsersController> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly ITransactionalEmailSender _emailSender;
 
         public UsersController(
             JobDBContext db,
             IConfiguration config,
             IWebHostEnvironment environment,
-            ILogger<UsersController> logger)
+            ILogger<UsersController> logger,
+            ITransactionalEmailSender emailSender)
         {
             _db = db;
             _environment = environment;
             _logger = logger;
+            _configuration = config;
+            _emailSender = emailSender;
            var configuredKey = config["Jwt:Key"] ?? config["Jwt__Key"];
 
             if (string.IsNullOrWhiteSpace(configuredKey))
@@ -41,9 +49,9 @@ namespace TriPowersLLC.Controllers
                 throw new InvalidOperationException("JWT signing key is not configured. Set 'Jwt:Key' to a value that is at least 16 bytes long.");
             }
 
-            if (Encoding.UTF8.GetByteCount(configuredKey) < 16)
+            if (Encoding.UTF8.GetByteCount(configuredKey) < 32)
             {
-                throw new InvalidOperationException("JWT signing key must be at least 16 bytes when encoded as UTF-8 to satisfy HMAC-SHA256 requirements.");
+                throw new InvalidOperationException("JWT signing key must be at least 32 bytes when encoded as UTF-8 to satisfy HMAC-SHA256 requirements.");
             }
 
             _jwtKey = configuredKey;
@@ -51,7 +59,10 @@ namespace TriPowersLLC.Controllers
 
         [AllowAnonymous]
         [HttpPost("password-reset/request")]
-        public async Task<ActionResult> RequestPasswordReset(PasswordResetRequestDto dto)
+        [EnableRateLimiting("password-reset")]
+        public async Task<ActionResult> RequestPasswordReset(
+            PasswordResetRequestDto dto,
+            CancellationToken cancellationToken)
         {
             // Always return the same response so this endpoint cannot be used to
             // discover which email addresses have accounts.
@@ -62,24 +73,47 @@ namespace TriPowersLLC.Controllers
                 return Ok(new { message = responseMessage });
             }
 
-            var user = await _db.Users.SingleOrDefaultAsync(u => u.Username == username);
+            var normalizedUsername = username.ToLowerInvariant();
+            var user = await _db.Users.SingleOrDefaultAsync(u => u.Username.ToLower() == normalizedUsername);
             if (user == null)
             {
+                return Ok(new { message = responseMessage });
+            }
+
+            if (!new EmailAddressAttribute().IsValid(user.Username))
+            {
+                _logger.LogWarning("Password reset email was not sent because account {UserId} does not use an email username.", user.Id);
                 return Ok(new { message = responseMessage });
             }
 
             var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
             user.PasswordResetTokenHash = SHA256.HashData(Encoding.UTF8.GetBytes(token));
             user.PasswordResetTokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(15);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
 
-            // Until email delivery is configured, the token is available only in
-            // development logs. It is never returned by a production API response.
-            _logger.LogInformation("Password reset token for {Username}: {ResetToken}", user.Username, token);
+            var resetUrl = BuildPasswordResetUrl(user.Username, token);
+            var sent = await _emailSender.SendPasswordResetAsync(
+                user.Username,
+                resetUrl,
+                user.PasswordResetTokenExpiresAt.Value,
+                cancellationToken);
+            if (!sent)
+            {
+                _logger.LogError("Password reset email could not be delivered for user {UserId}.", user.Id);
+            }
 
             return _environment.IsDevelopment()
                 ? Ok(new { message = responseMessage, resetToken = token })
                 : Ok(new { message = responseMessage });
+        }
+
+        private string BuildPasswordResetUrl(string username, string token)
+        {
+            var configured = _configuration["Frontend:BaseUrl"] ?? _configuration["FRONTEND_BASE_URL"];
+            var frontendBaseUrl = (string.IsNullOrWhiteSpace(configured)
+                ? "https://www.tripowersllc.com"
+                : configured).TrimEnd('/');
+            return $"{frontendBaseUrl}/reset-password#username={Uri.EscapeDataString(username)}&token={Uri.EscapeDataString(token)}";
         }
 
         [AllowAnonymous]
@@ -128,14 +162,15 @@ namespace TriPowersLLC.Controllers
                 return Unauthorized(new { message = "Invalid username or password." });
             }
 
-            Console.WriteLine($"User found: {user.Username}, role: {user.Role}");
-            Console.WriteLine($"Stored hash length: {user.PasswordHash?.Length}");
-            Console.WriteLine($"Stored salt length: {user.PasswordSalt?.Length}");
-
             // 2. Verify password
-                using var hmac = new HMACSHA512(user.PasswordSalt);
+            if (user.PasswordSalt is not { Length: > 0 } || user.PasswordHash is not { Length: > 0 })
+            {
+                return Unauthorized(new { message = "Invalid username or password." });
+            }
+
+            using var hmac = new HMACSHA512(user.PasswordSalt);
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(dto.Password));
-            if (!computedHash.SequenceEqual(user.PasswordHash))
+            if (!CryptographicOperations.FixedTimeEquals(computedHash, user.PasswordHash))
                {
                 return Unauthorized(new { message = "Invalid username or password." });
             }

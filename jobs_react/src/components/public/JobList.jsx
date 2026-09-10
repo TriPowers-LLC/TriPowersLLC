@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { fetchJobs } from "../../slices/jobsSlice";
+import Seo from "../Seo";
 
 const JobCard = ({ job }) => {
   const posted = job.postedAt || job.createdAt || job.postedDate;
@@ -61,6 +62,18 @@ const JobList = () => {
 
   return (
     <section className="space-y-6">
+      <Seo
+        title="Careers and Open Technology Roles"
+        description="Explore current career opportunities with TriPowers LLC across application development, technology, operations, staffing, and mission support."
+        path="/careers"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "TriPowers LLC Careers",
+          url: "https://www.tripowersllc.com/careers",
+          description: "Current career opportunities at TriPowers LLC.",
+        }}
+      />
       <header className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-blue-900">Open Roles</h1>
         <p className="text-slate-700">Browse our current openings.</p>

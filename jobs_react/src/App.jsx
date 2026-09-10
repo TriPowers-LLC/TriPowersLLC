@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import NavBar from './components/NavBar';
 import Home from './components/Home';
 import Services from './components/Services';
@@ -12,6 +12,11 @@ import JobList from './components/public/JobList';
 import JobDetail from './components/public/JobDetail';
 import MyApplications from './components/applications/MyApplications';
 import Privacy from './components/Privacy';
+import ExternalAuthCallback from './components/ExternalAuthCallback';
+import ResetPassword from './components/ResetPassword';
+import WinningBids from './components/WinningBids';
+import Footer from './components/Footer';
+import Seo from './components/Seo';
 
 function RequireAuth({ allowedRoles }) {
   const token = localStorage.getItem('token');
@@ -28,23 +33,49 @@ function RequireAuth({ allowedRoles }) {
   return <Outlet />;
 }
 
-const PublicLayout = () => (
-  <>
-    <NavBar />
-    <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
-      <Outlet />
-    </main>
-  </>
-);
+const NOINDEX_PATHS = ["/admin", "/login", "/auth/callback", "/reset-password"];
 
-const AppLayout = () => (
-  <>
-    <NavBar />
-    <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
-      <Outlet />
-    </main>
-  </>
-);
+const PublicLayout = () => {
+  const { pathname } = useLocation();
+  const shouldNoIndex = NOINDEX_PATHS.some((path) => pathname.startsWith(path));
+
+  return (
+    <>
+      {shouldNoIndex && (
+        <Seo
+          title="Secure Account Access"
+          description="Secure TriPowers LLC account access."
+          path={pathname}
+          robots="noindex,nofollow"
+        />
+      )}
+      <NavBar />
+      <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
+        <Outlet />
+      </main>
+      <Footer />
+    </>
+  );
+};
+
+const AppLayout = () => {
+  const { pathname } = useLocation();
+
+  return (
+    <>
+      <Seo
+        title="Secure Account Area"
+        description="Secure TriPowers LLC account area."
+        path={pathname}
+        robots="noindex,nofollow"
+      />
+      <NavBar />
+      <main className="pt-20 px-4 md:px-8 max-w-6xl mx-auto">
+        <Outlet />
+      </main>
+    </>
+  );
+};
 
 const App = () => {
   return (
@@ -58,9 +89,12 @@ const App = () => {
           <Route path="/about" element={<About />} />
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/services" element={<Services />} />
+          <Route path="/products/winningbids" element={<WinningBids />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/callback" element={<ExternalAuthCallback />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
         </Route>
 
         <Route element={<AppLayout />}>

@@ -13,6 +13,13 @@ import {
 } from "lucide-react";
 import groupImage from "../assets/groupImage.png";
 import { Link } from "react-router-dom";
+import winningBidsLogo from "../assets/winningbids-logo.png";
+import {
+  TRIPOWERS_SOCIAL_LINKS,
+  WINNING_BIDS_TOOLS_URL,
+  WINNING_BIDS_URL,
+} from "../config/externalLinks";
+import Seo from "./Seo";
 
 gsap.registerPlugin(useGSAP);
 
@@ -50,6 +57,41 @@ const HIGHLIGHTS = [
   "Technology + staffing under one trusted partner",
 ];
 
+const homeSchema = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.tripowersllc.com/#website",
+      url: "https://www.tripowersllc.com/",
+      name: "TriPowers LLC",
+      publisher: { "@id": "https://www.tripowersllc.com/#organization" },
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://www.tripowersllc.com/#organization",
+      name: "TriPowers LLC",
+      url: "https://www.tripowersllc.com/",
+      logo: "https://www.tripowersllc.com/logo.jpg",
+      areaServed: "United States",
+      sameAs: TRIPOWERS_SOCIAL_LINKS.map(({ url }) => url),
+      knowsAbout: [
+        "Application development",
+        "Artificial intelligence automation",
+        "Cloud solutions",
+        "Technical staffing",
+        "Government contracting technology",
+      ],
+      owns: {
+        "@type": "SoftwareApplication",
+        name: "WinningBids.ai",
+        url: "https://winningbids.ai/",
+        applicationCategory: "BusinessApplication",
+      },
+    },
+  ],
+};
+
 export default function Home() {
   useGSAP(() => {
     gsap.fromTo(
@@ -80,6 +122,12 @@ export default function Home() {
 
   return (
     <div id="home" className="bg-white text-slate-900">
+      <Seo
+        title="TriPowers LLC | AI, Application Development & Technology Solutions"
+        description="TriPowers LLC delivers AI automation, application development, cloud solutions, technical staffing, and government contracting technology for mission-driven organizations."
+        imageAlt="TriPowers LLC logo"
+        structuredData={homeSchema}
+      />
       <section className="relative isolate overflow-hidden">
         <img
           src={groupImage}
@@ -140,6 +188,62 @@ export default function Home() {
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-slate-950 px-4 py-20 text-white md:px-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.25),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.16),transparent_32%)]" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-300">
+              TriPowers Product
+            </p>
+            <h2 className="mt-3 text-3xl font-bold md:text-5xl">Meet WinningBids.ai</h2>
+            <p className="mt-3 text-xl font-semibold text-sky-300">AI for Government Contracting</p>
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-200">
+              Built by TriPowers LLC, WinningBids.ai helps small businesses find
+              better-fit federal opportunities, make smarter bid/no-bid decisions,
+              understand solicitation requirements, and move from opportunity
+              discovery toward a compliant proposal.
+            </p>
+            <div className="mt-7 grid gap-3 sm:grid-cols-3">
+              {[
+                "Find Better Opportunities",
+                "Decide Smarter",
+                "Build Stronger Responses",
+              ].map((value) => (
+                <div key={value} className="rounded-xl border border-white/10 bg-white/5 p-4 font-semibold">
+                  <CheckCircle className="mb-2 text-emerald-400" size={19} aria-hidden="true" />
+                  {value}
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/products/winningbids"
+                className="inline-flex items-center justify-center rounded-xl bg-emerald-500 px-6 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400 focus:outline-none focus:ring-4 focus:ring-emerald-300/40"
+              >
+                Explore WinningBids.ai <ArrowRight className="ml-2" size={18} aria-hidden="true" />
+              </Link>
+              <a
+                href={WINNING_BIDS_TOOLS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center rounded-xl border border-sky-300/40 px-6 py-3 font-semibold text-sky-100 transition hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-sky-300/30"
+              >
+                Try Free GovCon Tools
+              </a>
+            </div>
+          </div>
+          <a
+            href={WINNING_BIDS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Visit WinningBids.ai (opens in a new tab)"
+            className="rounded-3xl border border-white/10 bg-white p-7 shadow-2xl transition hover:-translate-y-1 focus:outline-none focus:ring-4 focus:ring-sky-300/40 sm:p-10"
+          >
+            <img src={winningBidsLogo} alt="Winning Bids AI" className="mx-auto h-auto w-full max-w-md" />
+          </a>
         </div>
       </section>
 

@@ -8,6 +8,7 @@ const NAV_LINKS = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
   { label: "Services", href: "/services" },
+  { label: "Products", href: "/products/winningbids" },
   { label: "Careers", href: "/careers" },
   { label: "Portfolio", href: "/portfolio" },
   { label: "Contact", href: "/contact" },
@@ -67,9 +68,11 @@ const NavBar = () => {
         </Link>
 
         <button
-          className="sm:hidden"
+          className="rounded-md p-2 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-blue-200 lg:hidden"
           onClick={() => setOpen(!open)}
-          aria-label="Toggle menu"
+          aria-label={open ? "Close navigation menu" : "Open navigation menu"}
+          aria-expanded={open}
+          aria-controls="mobile-navigation"
           type="button"
         >
           <svg
@@ -96,10 +99,10 @@ const NavBar = () => {
           </svg>
         </button>
 
-        <ul className="hidden items-center space-x-6 text-sm font-medium sm:flex">
+        <ul className="hidden items-center space-x-5 text-sm font-medium lg:flex">
           {visibleLinks.map((link) => (
             <li key={link.label}>
-              <Link to={link.href} className="transition hover:text-orange-400">
+                <Link to={link.href} className="rounded-sm transition hover:text-orange-400 focus:outline-none focus:ring-2 focus:ring-blue-200">
                 {link.label}
               </Link>
             </li>
@@ -126,7 +129,7 @@ const NavBar = () => {
       </div>
 
       {open && (
-        <ul className="space-y-3 bg-blue-900 px-4 pb-6 pt-2 text-center sm:hidden">
+        <ul id="mobile-navigation" className="max-h-[calc(100vh-4rem)] space-y-1 overflow-y-auto bg-blue-900 px-4 pb-6 pt-2 text-center lg:hidden">
           {visibleLinks.map((link) => (
             <li key={link.label}>
               <Link

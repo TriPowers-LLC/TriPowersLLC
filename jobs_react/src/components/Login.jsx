@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { confirmPasswordReset, postRegister, requestPasswordReset } from '../api/auth';
+import { confirmPasswordReset, getGoogleLoginUrl, postRegister, requestPasswordReset } from '../api/auth';
 import { loginUser, loginSuccess } from '../slices/authSlice';
 
 export default function Login() {
@@ -80,11 +80,15 @@ export default function Login() {
     setResetMessage('');
     try {
       const { data } = await requestPasswordReset(creds.username);
-      setReset((prev) => ({ ...prev, token: data?.resetToken || '' }));
-      setResetStage('confirm');
+      if (data?.resetToken) {
+        setReset((prev) => ({ ...prev, token: data.resetToken }));
+        setResetStage('confirm');
+      } else {
+        setResetStage('sent');
+      }
       setResetMessage(data?.message || 'If the account exists, reset instructions have been sent.');
     } catch (err) {
-      setResetMessage(err.response?.data?.message || 'Unable to request a reset token.');
+      setResetMessage(err.message || 'Unable to request a reset token.');
     }
   };
 
@@ -101,7 +105,7 @@ export default function Login() {
       setReset({ token: '', newPassword: '' });
       setResetStage(null);
     } catch (err) {
-      setResetMessage(err.response?.data?.message || 'The reset token is invalid or has expired.');
+      setResetMessage(err.message || 'The reset token is invalid or has expired.');
     }
   };
 
@@ -110,7 +114,9 @@ export default function Login() {
       <div className="max-w-sm mx-auto p-4">
         <h2 className="text-2xl mb-4">Reset password</h2>
         {resetMessage && <p className="mb-3">{resetMessage}</p>}
-        <form onSubmit={resetStage === 'request' ? requestReset : confirmReset}>
+        {resetStage === 'sent' ? (
+          <p className="mb-4">Check your email for a password-reset link. The link expires in 15 minutes.</p>
+        ) : <form onSubmit={resetStage === 'request' ? requestReset : confirmReset}>
           <label className="block mb-3">
             Username
             <input type="text" value={creds.username} onChange={(e) => setCreds((prev) => ({ ...prev, username: e.target.value }))} className="w-full border p-2 mt-1" required readOnly={resetStage === 'confirm'} />
@@ -130,7 +136,7 @@ export default function Login() {
           <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded">
             {resetStage === 'request' ? 'Request reset token' : 'Reset password'}
           </button>
-        </form>
+        </form>}
         <button type="button" onClick={() => { setResetStage(null); setResetMessage(''); }} className="block mx-auto mt-4 text-blue-600 underline">Back to login</button>
       </div>
     );
@@ -180,6 +186,18 @@ export default function Login() {
         <button type="button" onClick={() => { setResetStage('request'); setResetMessage(''); }} className="block mx-auto mt-3 text-blue-600 underline">
           Forgot password?
         </button>
+      )}
+
+      {!isRegister && (
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => { window.location.assign(getGoogleLoginUrl()); }}
+            className="w-full border border-gray-300 bg-white text-gray-900 py-2 rounded hover:bg-gray-50"
+          >
+            Continue with Google
+          </button>
+        </div>
       )}
 
       <p className="mt-4 text-center">

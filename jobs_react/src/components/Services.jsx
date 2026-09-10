@@ -16,6 +16,8 @@ import {
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Link } from "react-router-dom";
+import Seo from "./Seo";
 
 gsap.registerPlugin(ScrollTrigger);
 gsap.registerPlugin(useGSAP);
@@ -88,6 +90,24 @@ const STAFFING = [
   "Project and Technical Support Personnel",
 ];
 
+const servicesSchema = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "TriPowers LLC Technology and Staffing Services",
+  url: "https://www.tripowersllc.com/services",
+  itemListElement: CAPABILITIES.map(({ title, description }, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    item: {
+      "@type": "Service",
+      name: title,
+      description,
+      provider: { "@type": "Organization", name: "TriPowers LLC" },
+      areaServed: "United States",
+    },
+  })),
+};
+
 const Services = () => {
   useGSAP(() => {
   gsap.set(".services-heading, .cap-card, .info-card", {
@@ -150,11 +170,17 @@ const Services = () => {
       id="services"
       className="relative overflow-x-hidden scroll-mt-16 bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-20 md:px-8"
     >
+      <Seo
+        title="AI, Application Development, Cloud & Staffing Services"
+        description="TriPowers LLC provides AI automation, full-stack application development, IT modernization, cloud and SaaS solutions, system integration, cybersecurity, and technical staffing."
+        path="/services"
+        structuredData={servicesSchema}
+      />
       <div className="mx-auto w-full max-w-7xl">
         <div className="services-heading mx-auto mb-14 max-w-3xl text-center">
-          <h2 className="mb-4 text-3xl font-bold text-blue-900 md:text-4xl">
+          <h1 className="mb-4 text-3xl font-bold text-blue-900 md:text-4xl">
             Our Capabilities
-          </h2>
+          </h1>
           <p className="text-base leading-relaxed text-gray-700 md:text-lg">
             TriPowers LLC delivers modern technology solutions and technical
             workforce support for government, public sector, and commercial
@@ -293,6 +319,18 @@ const Services = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-10 text-center">
+          <p className="text-slate-700">
+            See these capabilities in action in our AI-powered government contracting software.
+          </p>
+          <Link
+            to="/products/winningbids"
+            className="mt-3 inline-flex rounded-xl bg-blue-700 px-5 py-3 font-semibold text-white transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200"
+          >
+            Explore WinningBids.ai
+          </Link>
         </div>
       </div>
     </section>

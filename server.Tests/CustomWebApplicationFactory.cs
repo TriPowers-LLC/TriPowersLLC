@@ -4,25 +4,35 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using TriPowersLLC.Models;
+using TriPowersLLC.Services;
 
 namespace TriPowersLLC.Tests;
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    private const string SigningKey = "TestSigningKey1234567890";
+    private const string SigningKey = "TestSigningKey-AtLeast-32-Bytes-Long-For-HS256";
+    private readonly string _databaseName = $"TestDb-{Guid.NewGuid()}";
+    public RecordingEmailSender EmailSender { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
+        builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureAppConfiguration((_, config) =>
         {
             var overrides = new Dictionary<string, string?>
@@ -33,11 +43,17 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             config.AddInMemoryCollection(overrides);
         });
 
-        builder.ConfigureServices(services =>
+        builder.ConfigureTestServices(services =>
         {
             services.RemoveAll(typeof(DbContextOptions<JobDBContext>));
+            services.RemoveAll(typeof(IDbContextOptionsConfiguration<JobDBContext>));
+            services.RemoveAll(typeof(DbContextOptions));
+            services.RemoveAll(typeof(IDatabaseProvider));
+            services.RemoveAll(typeof(JobDBContext));
             services.AddDbContext<JobDBContext>(options =>
-                options.UseInMemoryDatabase($"TestDb-{Guid.NewGuid()}"));
+                options.UseInMemoryDatabase(_databaseName));
+            services.RemoveAll(typeof(ITransactionalEmailSender));
+            services.AddSingleton<ITransactionalEmailSender>(EmailSender);
 
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {
@@ -78,6 +94,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         var token = new JwtSecurityToken(
             claims: new[]
             {
+                new Claim(ClaimTypes.NameIdentifier, "123"),
                 new Claim(ClaimTypes.Name, $"{role}User"),
                 new Claim(ClaimTypes.Role, role)
             },
@@ -85,5 +102,22 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+}
+
+public sealed class RecordingEmailSender : ITransactionalEmailSender
+{
+    public string? Recipient { get; private set; }
+    public string? ResetUrl { get; private set; }
+
+    public Task<bool> SendPasswordResetAsync(
+        string recipient,
+        string resetUrl,
+        DateTimeOffset expiresAt,
+        CancellationToken cancellationToken = default)
+    {
+        Recipient = recipient;
+        ResetUrl = resetUrl;
+        return Task.FromResult(true);
     }
 }

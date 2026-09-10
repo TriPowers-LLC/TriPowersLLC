@@ -1,4 +1,15 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using TriPowersLLC.Auth;
+using TriPowersLLC.Models;
 
 namespace TriPowersLLC.Controllers;
 
@@ -6,21 +17,115 @@ namespace TriPowersLLC.Controllers;
 [Route("api/auth")]
 public class ExternalAuthController : ControllerBase
 {
-    [HttpGet("google")]
-    public IActionResult Google()
+    public const string ExternalCookieScheme = "ExternalCookie";
+
+    private readonly JobDBContext _db;
+    private readonly IConfiguration _configuration;
+    private readonly IAuthenticationSchemeProvider _schemeProvider;
+    private readonly ILogger<ExternalAuthController> _logger;
+
+    public ExternalAuthController(
+        JobDBContext db,
+        IConfiguration configuration,
+        IAuthenticationSchemeProvider schemeProvider,
+        ILogger<ExternalAuthController> logger)
     {
-        return StatusCode(StatusCodes.Status501NotImplemented, new
-        {
-            message = "Google OAuth is not configured yet. Set up OAuth credentials and callback handling on the server."
-        });
+        _db = db;
+        _configuration = configuration;
+        _schemeProvider = schemeProvider;
+        _logger = logger;
     }
 
-    [HttpGet("microsoft")]
-    public IActionResult Microsoft()
+    [AllowAnonymous]
+    [HttpGet("google")]
+    public async Task<IActionResult> Google()
     {
-        return StatusCode(StatusCodes.Status501NotImplemented, new
+        if (await _schemeProvider.GetSchemeAsync(GoogleDefaults.AuthenticationScheme) is null)
         {
-            message = "Microsoft OAuth is not configured yet. Set up OAuth credentials and callback handling on the server."
+            return Problem(
+                title: "Google authentication is unavailable",
+                detail: "The Google client ID or client secret is not configured on the API.",
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+
+        var callbackUrl = Url.ActionLink(nameof(GoogleCallback), values: null)
+            ?? throw new InvalidOperationException("Unable to generate the Google callback URL.");
+        var properties = new AuthenticationProperties { RedirectUri = callbackUrl };
+        return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("google/callback")]
+    public async Task<IActionResult> GoogleCallback()
+    {
+        var authentication = await HttpContext.AuthenticateAsync(ExternalCookieScheme);
+        if (!authentication.Succeeded || authentication.Principal is null)
+        {
+            _logger.LogWarning("Google authentication callback did not contain a valid external identity.");
+            return RedirectToFrontendError("Google authentication failed. Please try again.");
+        }
+
+        var email = authentication.Principal.FindFirstValue(ClaimTypes.Email)?.Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            await HttpContext.SignOutAsync(ExternalCookieScheme);
+            return RedirectToFrontendError("Google did not provide an email address.");
+        }
+
+        var user = await _db.Users.SingleOrDefaultAsync(candidate => candidate.Username.ToLower() == email);
+        if (user is null)
+        {
+            using var hmac = new HMACSHA512();
+            user = new User
+            {
+                Username = email,
+                Role = "applicant",
+                PasswordHash = hmac.ComputeHash(RandomNumberGenerator.GetBytes(64)),
+                PasswordSalt = hmac.Key
+            };
+            _db.Users.Add(user);
+            await _db.SaveChangesAsync();
+        }
+
+        var token = GenerateJwtToken(user);
+        await HttpContext.SignOutAsync(ExternalCookieScheme);
+
+        var fragment = string.Join('&', new[]
+        {
+            $"token={Uri.EscapeDataString(token)}",
+            $"id={user.Id}",
+            $"username={Uri.EscapeDataString(user.Username)}",
+            $"role={Uri.EscapeDataString(AuthPolicies.NormalizeRole(user.Role))}"
         });
+        return Redirect($"{GetFrontendBaseUrl()}/auth/callback#{fragment}");
+    }
+
+    private IActionResult RedirectToFrontendError(string message) =>
+        Redirect($"{GetFrontendBaseUrl()}/auth/callback#error={Uri.EscapeDataString(message)}");
+
+    private string GetFrontendBaseUrl()
+    {
+        var configured = _configuration["Frontend:BaseUrl"] ?? _configuration["FRONTEND_BASE_URL"];
+        return (string.IsNullOrWhiteSpace(configured) ? "https://www.tripowersllc.com" : configured).TrimEnd('/');
+    }
+
+    private string GenerateJwtToken(User user)
+    {
+        var jwtKey = _configuration["Jwt:Key"] ?? _configuration["Jwt__Key"]
+            ?? throw new InvalidOperationException("JWT signing key is not configured.");
+        var credentials = new SigningCredentials(
+            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+            SecurityAlgorithms.HmacSha256);
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Role, AuthPolicies.NormalizeRole(user.Role))
+        };
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(12),
+            signingCredentials: credentials);
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
