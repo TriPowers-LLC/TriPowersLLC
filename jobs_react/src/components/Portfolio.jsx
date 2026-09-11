@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import Seo from "./Seo";
+import { PUBLIC_ROUTE_METADATA } from "../seo/routeMetadata.mjs";
 
 const projects = [
   {
@@ -69,9 +70,7 @@ const Portfolio = () => {
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
       <Seo
-        title="Portfolio & Product Experience"
-        description="Explore TriPowers LLC application development, AI integration, cloud delivery, government technology products, and modernization experience."
-        path="/portfolio"
+        {...PUBLIC_ROUTE_METADATA["/portfolio"]}
         structuredData={portfolioSchema}
       />
       <h1 className="text-3xl font-bold mb-8 text-center">

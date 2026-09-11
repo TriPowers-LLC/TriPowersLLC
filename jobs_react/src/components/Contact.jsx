@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import Seo from "./Seo";
+import { PUBLIC_ROUTE_METADATA } from "../seo/routeMetadata.mjs";
 import { Facebook, Instagram, Linkedin } from "lucide-react";
 import { TRIPOWERS_SOCIAL_LINKS } from "../config/externalLinks";
 
@@ -68,9 +69,7 @@ const Contact = () => {
       className="relative bg-gradient-to-b from-slate-50 to-blue-50 px-4 py-20"
     >
       <Seo
-        title="Contact TriPowers LLC"
-        description="Contact TriPowers LLC about application development, AI automation, cloud modernization, technical staffing, and government technology solutions."
-        path="/contact"
+        {...PUBLIC_ROUTE_METADATA["/contact"]}
         structuredData={contactSchema}
       />
       <div className="mx-auto max-w-6xl">

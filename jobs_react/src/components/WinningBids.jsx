@@ -18,6 +18,7 @@ import {
   WINNING_BIDS_URL,
 } from "../config/externalLinks";
 import Seo from "./Seo";
+import { PUBLIC_ROUTE_METADATA } from "../seo/routeMetadata.mjs";
 
 const CAPABILITIES = [
   "Federal opportunity discovery using SAM.gov data",
@@ -62,12 +63,7 @@ const productSchema = {
 const WinningBids = () => (
   <div className="-mx-4 bg-white text-slate-900 md:-mx-8">
     <Seo
-      title="WinningBids.ai — AI for Government Contracting"
-      description="Explore WinningBids.ai, government contracting software developed by TriPowers LLC for SAM.gov opportunity matching, bid/no-bid analysis, solicitation analysis, and AI proposal assistance."
-      path="/products/winningbids"
-      image="https://winningbids.ai/logo-full.png"
-      imageAlt="Winning Bids AI logo"
-      type="product"
+      {...PUBLIC_ROUTE_METADATA["/products/winningbids"]}
       structuredData={productSchema}
     />
 

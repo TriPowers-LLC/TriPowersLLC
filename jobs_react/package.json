@@ -34,7 +34,7 @@
   "scripts": {
     "dev": "vite",
     "start": "vite start",
-    "build": "vite build",
+    "build": "vite build && node scripts/prerender-route-metadata.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",

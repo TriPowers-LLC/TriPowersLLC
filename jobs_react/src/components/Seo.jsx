@@ -1,7 +1,5 @@
 import { useEffect } from "react";
-
-const SITE_URL = "https://www.tripowersllc.com";
-const DEFAULT_IMAGE = `${SITE_URL}/logo.jpg`;
+import { DEFAULT_IMAGE, formatSeoTitle, SITE_URL } from "../seo/routeMetadata.mjs";
 
 function setMeta(selector, attributes) {
   let element = document.head.querySelector(selector);
@@ -28,9 +26,7 @@ const Seo = ({
 }) => {
   useEffect(() => {
     const canonicalUrl = new URL(path, SITE_URL).toString();
-    const fullTitle = title.includes("TriPowers")
-      ? title
-      : `${title} | TriPowers LLC`;
+    const fullTitle = formatSeoTitle(title);
 
     document.title = fullTitle;
     setMeta('meta[name="description"]', {

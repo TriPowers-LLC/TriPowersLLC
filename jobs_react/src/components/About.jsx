@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { Shield, Users, Globe } from "lucide-react";
 import Seo from "./Seo";
+import { PUBLIC_ROUTE_METADATA } from "../seo/routeMetadata.mjs";
 import { TRIPOWERS_SOCIAL_LINKS } from "../config/externalLinks";
 
 const aboutSchema = {
@@ -23,9 +24,7 @@ const About = () => {
  return (
     <section id="about" className="relative">
       <Seo
-        title="About Our Government Technology Company"
-        description="Learn about TriPowers LLC, a Texas-based SDVOSB delivering application development, AI automation, cloud solutions, technical staffing, and mission support."
-        path="/about"
+        {...PUBLIC_ROUTE_METADATA["/about"]}
         structuredData={aboutSchema}
       />
       {/* Background gradient */}

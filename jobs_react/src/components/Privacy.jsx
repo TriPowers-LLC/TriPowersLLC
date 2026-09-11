@@ -1,5 +1,6 @@
 import React from "react";
 import Seo from "./Seo";
+import { PUBLIC_ROUTE_METADATA } from "../seo/routeMetadata.mjs";
 
 const LAST_UPDATED = "May 22, 2026";
 
@@ -7,9 +8,7 @@ const Privacy = () => {
   return (
     <section className="mx-auto max-w-4xl px-4 py-20 text-slate-800">
       <Seo
-        title="Privacy Policy"
-        description="Review how TriPowers LLC collects, uses, protects, and manages information submitted through its website and job-application services."
-        path="/privacy"
+        {...PUBLIC_ROUTE_METADATA["/privacy"]}
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",

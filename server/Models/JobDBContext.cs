@@ -12,5 +12,14 @@ namespace TriPowersLLC.Models
         public DbSet<Job> Jobs { get; set; }
         public DbSet<User> Users { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<User>()
+                .HasIndex(user => new { user.ExternalProvider, user.ExternalSubject })
+                .IsUnique();
+
+            modelBuilder.Entity<User>().Property(user => user.ExternalProvider).HasMaxLength(32);
+            modelBuilder.Entity<User>().Property(user => user.ExternalSubject).HasMaxLength(255);
+        }
     }
 }
