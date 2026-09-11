@@ -20,6 +20,7 @@ import {
   WINNING_BIDS_URL,
 } from "../config/externalLinks";
 import Seo from "./Seo";
+import { PUBLIC_ROUTE_METADATA } from "../seo/routeMetadata.mjs";
 
 gsap.registerPlugin(useGSAP);
 
@@ -123,9 +124,7 @@ export default function Home() {
   return (
     <div id="home" className="bg-white text-slate-900">
       <Seo
-        title="TriPowers LLC | AI, Application Development & Technology Solutions"
-        description="TriPowers LLC delivers AI automation, application development, cloud solutions, technical staffing, and government contracting technology for mission-driven organizations."
-        imageAlt="TriPowers LLC logo"
+        {...PUBLIC_ROUTE_METADATA["/"]}
         structuredData={homeSchema}
       />
       <section className="relative isolate overflow-hidden">

@@ -174,8 +174,9 @@ builder.Services.AddScoped<ITransactionalEmailSender, ResendEmailSender>();
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
+    // Keep ASP.NET Core's loopback-only trusted proxy defaults. The production
+    // reverse proxy runs on the same host; forwarding headers from remote clients
+    // must not control the address used by security-sensitive rate limits.
 });
 builder.Services.AddRateLimiter(options =>
 {

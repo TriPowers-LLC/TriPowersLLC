@@ -9,6 +9,8 @@ namespace TriPowersLLC.Models
         public byte[] PasswordSalt { get; set; } = null!;
         public byte[]? PasswordResetTokenHash { get; set; }
         public DateTimeOffset? PasswordResetTokenExpiresAt { get; set; }
+        public string? ExternalProvider { get; set; }
+        public string? ExternalSubject { get; set; }
 
         // "admin", "applicant"
         public string Role { get; set; } = "applicant";

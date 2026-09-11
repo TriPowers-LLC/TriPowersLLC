@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { fetchJobs } from "../../slices/jobsSlice";
 import Seo from "../Seo";
+import { PUBLIC_ROUTE_METADATA } from "../../seo/routeMetadata.mjs";
 
 const JobCard = ({ job }) => {
   const posted = job.postedAt || job.createdAt || job.postedDate;
@@ -63,9 +64,7 @@ const JobList = () => {
   return (
     <section className="space-y-6">
       <Seo
-        title="Careers and Open Technology Roles"
-        description="Explore current career opportunities with TriPowers LLC across application development, technology, operations, staffing, and mission support."
-        path="/careers"
+        {...PUBLIC_ROUTE_METADATA["/careers"]}
         structuredData={{
           "@context": "https://schema.org",
           "@type": "CollectionPage",

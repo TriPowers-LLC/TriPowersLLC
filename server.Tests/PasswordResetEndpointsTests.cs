@@ -4,8 +4,13 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using TriPowersLLC.Models;
 using Xunit;
 
@@ -98,6 +103,31 @@ public class PasswordResetEndpointsTests : IClassFixture<CustomWebApplicationFac
         Assert.True(
             response.StatusCode == HttpStatusCode.ServiceUnavailable,
             $"Expected ServiceUnavailable, received {response.StatusCode}: {await response.Content.ReadAsStringAsync()}");
+    }
+
+    [Fact]
+    public async Task UntrustedForwardedAddressCannotReplaceRateLimitAddress()
+    {
+        await using var factory = new CustomWebApplicationFactory();
+        _ = factory.CreateClient();
+        var originalAddress = IPAddress.Parse("198.51.100.10");
+        IPAddress? rateLimitAddress = null;
+        var middleware = new ForwardedHeadersMiddleware(
+            context =>
+            {
+                rateLimitAddress = context.Connection.RemoteIpAddress;
+                return Task.CompletedTask;
+            },
+            factory.Services.GetRequiredService<ILoggerFactory>(),
+            factory.Services.GetRequiredService<IOptions<ForwardedHeadersOptions>>());
+        var context = new DefaultHttpContext();
+        context.Connection.RemoteIpAddress = originalAddress;
+        context.Request.Headers["X-Forwarded-For"] = "203.0.113.42";
+
+        await middleware.Invoke(context);
+
+        Assert.Equal(originalAddress, rateLimitAddress);
+        Assert.Equal("203.0.113.42", context.Request.Headers["X-Forwarded-For"]);
     }
 
 }

@@ -18,6 +18,7 @@ import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Link } from "react-router-dom";
 import Seo from "./Seo";
+import { PUBLIC_ROUTE_METADATA } from "../seo/routeMetadata.mjs";
 
 gsap.registerPlugin(ScrollTrigger);
 gsap.registerPlugin(useGSAP);
@@ -171,9 +172,7 @@ const Services = () => {
       className="relative overflow-x-hidden scroll-mt-16 bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-20 md:px-8"
     >
       <Seo
-        title="AI, Application Development, Cloud & Staffing Services"
-        description="TriPowers LLC provides AI automation, full-stack application development, IT modernization, cloud and SaaS solutions, system integration, cybersecurity, and technical staffing."
-        path="/services"
+        {...PUBLIC_ROUTE_METADATA["/services"]}
         structuredData={servicesSchema}
       />
       <div className="mx-auto w-full max-w-7xl">
